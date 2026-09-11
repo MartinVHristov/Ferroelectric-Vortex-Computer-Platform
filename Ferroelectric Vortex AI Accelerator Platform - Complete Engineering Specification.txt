@@ -1,0 +1,2027 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{cleveref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{longtable}
+
+\sisetup{detect-all=true}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdftitle={Ferroelectric Vortex AI Accelerator Platform: Complete Engineering Specification},
+    pdfauthor={Martin Hristov},
+    pdfsubject={AI Accelerator, Matrix-Vector Engine, Ferroelectric},
+    pdfkeywords={AI accelerator, matrix-vector engine, ferroelectric, engineering spec}
+}
+
+\title{\textbf{Ferroelectric Vortex AI Accelerator Platform}\\
+\large Complete Engineering Specification}
+\author{Martin Hristov}
+\date{11 September 2026}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \bfseries Ferroelectric Vortex AI Accelerator Platform}\\[0.3cm]
+{\Large \bfseries Complete Engineering Specification}\\[2cm]
+
+{\large Martin Hristov}\\[0.5cm]
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}\\[2cm]
+\texttt{11 September 2026}\\[2cm]
+
+\begin{center}
+\textbf{Document Type:} Engineering Design --- Core Specification\\
+\textbf{Document License:} CC BY 4.0\\
+\textbf{6DUFT Framework License:} CC BY 4.0\\
+\textbf{Technology Patent Status:} \textcolor{red}{\textbf{PUBLIC RELEASE --- NO PATENT SOUGHT}}\\
+\textbf{Advanced Optimization:} \textit{Available later in this document}\\
+\textbf{Repository:}
+\href{https://mega.nz/folder/v35nVLAB#NbS00c8CL8ONTEHyMPe-Fg}{Mega} \,|\,
+\href{https://drive.proton.me/urls/CMHBZEQKVG#ScNAG2APdoH2}{Proton Drive} \,|\,
+\href{https://zenodo.org/search?q=metadata.creators.person_or_org.name%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo} \,|\,
+\href{https://github.com/MartinVHristov}{GitHub} \,|\,
+\href{https://osf.io/user/9ps8x}{OSF} \,|\,
+\href{https://independent.academia.edu/MartinHristov37}{Academia} \,|\,
+\href{https://x.com/MHristov37}{X}
+\end{center}
+
+\vfill
+{\small This document provides the complete engineering specification for a fixed-weight matrix-vector engine built on ferroelectric vortex memory cells. The device performs neural network inference at high throughput by storing trained weights in the crossbar array. All cell geometries, material compositions, fabrication steps, circuit designs, operating procedures, qualification tests, and acceptance criteria are provided explicitly. Every parameter required to build, test, and operate the baseline device is included. The design is released as a public, patent-free engineering specification. An advanced optimization configuration is offered separately and is described at the end of this document.}
+
+\vspace{1cm}
+
+\begin{center}
+\textbf{This is a 6DUFT inspired technology.}
+\end{center}
+
+\end{titlepage}
+
+\newpage
+\begin{abstract}
+This document is the complete engineering specification for a fixed-weight matrix-vector engine built on ferroelectric vortex memory cells.
+
+The device performs neural network inference at high throughput by storing trained weights in a crossbar array of ferroelectric cells. Weights are programmed at fabrication and cannot be changed in the field. The device is designed for mass deployment of trained neural networks.
+
+The baseline device provides:
+
+\begin{itemize}
+    \item \textbf{Compute time:} 15.67 ns
+    \item \textbf{Active crossbars:} 70 (out of 700)
+    \item \textbf{Raw throughput:} $4.47 \times 10^{15}$ MAC/s
+    \item \textbf{Fair throughput (INT8-equivalent):} $5.58 \times 10^{14}$ MAC/s
+    \item \textbf{Peak power:} 40.9 W
+    \item \textbf{Average power (10\% duty):} 4.1 W
+    \item \textbf{Efficiency:} $1.36 \times 10^{14}$ MAC/J (INT8-equivalent)
+    \item \textbf{Cost:} \$4.30
+\end{itemize}
+
+The device uses standard 28 nm CMOS with hafnium zirconium oxide (Hf$_{0.5}$Zr$_{0.5}$O$_2$, HZO) atomic layer deposition. No exotic materials are required. The complete fabrication flow has 19 steps and 10 masks.
+
+The document covers architecture, cell geometry and materials, the fabrication flow, circuit design, operating principles, performance specifications, verification and qualification, failure modes and mitigations, packaging, and an advanced optimization configuration available separately.
+
+The design is released openly. No patent is sought.
+
+\textbf{This is a 6DUFT inspired technology.}
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+%=====================================================================
+\part{Introduction and Overview}
+%=====================================================================
+
+\section{Purpose and Scope}
+
+This document is the complete engineering specification for a fixed-weight matrix-vector engine built on ferroelectric vortex memory cells.
+
+It provides every parameter, process step, circuit specification, and procedure required to build, test, and operate the baseline device.
+
+The document is written for:
+
+\begin{itemize}
+    \item Foundry process engineers who will fabricate the device.
+    \item Circuit designers who will integrate the device.
+    \item Test engineers who will qualify the device.
+    \item System engineers who will deploy the device.
+\end{itemize}
+
+No prior knowledge of any theoretical framework is required. All necessary engineering information is contained in this document.
+
+\section{What the Device Is}
+
+The device is a fixed-weight matrix-vector multiplication engine. It performs neural network inference at high throughput.
+
+The weights are programmed at fabrication. They cannot be changed in the field. The device is designed for mass deployment of trained neural networks.
+
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+\textbf{Device Core Function} \\
+\hline
+Input vector $\mathbf{x}$ (1000 elements per crossbar) \\
+\quad $\downarrow$ \\
+Crossbar compute: $\mathbf{y} = \mathbf{W}^T \mathbf{x}$ \\
+\quad $\downarrow$ \\
+Output vector $\mathbf{y}$ (1000 elements per crossbar) \\
+\hline
+\end{tabular}
+\end{center}
+
+The matrix $\mathbf{W}$ is stored in the cell array. Each cell stores one weight bit. The input vector $\mathbf{x}$ is applied as voltages on the word lines. The output vector $\mathbf{y}$ is read as currents on the bit lines.
+
+\subsection{Crossbar Architecture}
+
+The device uses a crossbar architecture:
+
+\begin{itemize}
+    \item Word lines (inputs) run horizontally.
+    \item Bit lines (outputs) run vertically.
+    \item Cells at each intersection store weights.
+\end{itemize}
+
+For a 1000 $\times$ 1000 crossbar:
+
+\begin{itemize}
+    \item 1000 word lines (input channels)
+    \item 1000 bit lines (output channels)
+    \item 1,000,000 cells (weight storage)
+\end{itemize}
+
+\subsection{Weight Precision}
+
+The baseline device uses 1-bit weights. Each cell stores a single weight bit:
+
+\begin{itemize}
+    \item Weight = 0: cell programmed to the OFF state.
+    \item Weight = 1: cell programmed to the ON state.
+\end{itemize}
+
+The input vector elements are represented as multi-level voltages on the word lines (4-bit DACs, 16 levels). The output vector elements are digitized by the on-chip ADCs (8-bit resolution).
+
+For comparison to INT8 accelerators, the fair throughput divides the raw MAC rate by 8, since 8 cells per weight are needed to reach INT8-equivalent precision. Raw and fair throughput are both stated in the performance tables.
+
+\subsection{Number of Crossbars}
+
+The baseline device contains:
+
+\begin{itemize}
+    \item \textbf{Total cells:} 700 million.
+    \item \textbf{Total crossbars:} 700 (each 1000 $\times$ 1000).
+    \item \textbf{Active crossbars at any time:} 70.
+\end{itemize}
+
+The control logic selects which 70 crossbars are active at any time. The remaining 630 are idle and available for redundancy or time-multiplexing.
+
+\subsection{Input and Output Specifications}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Input channels (word lines per crossbar) & 1000 \\
+Input voltage range per word line & 0--50 mV \\
+Input resolution per word line & 4 bits (16 levels) \\
+Input step size & 3.125 mV \\
+Output channels (bit lines per crossbar) & 1000 \\
+Output current range per bit line & 0--840.5 $\mu$A \\
+Output resolution per bit line & 8 bits (256 levels) \\
+Weight precision & 1 bit per cell \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The host is responsible for scaling its input vector to the 0--50 mV range of the word line DACs.
+
+\section{What the Device Is Not}
+
+The device is not:
+
+\begin{itemize}
+    \item A general-purpose processor. It cannot run an operating system or execute arbitrary code.
+    \item A GPU. It cannot render graphics or perform training.
+    \item A complete neural network. It implements one or more linear layers. Nonlinearity is done off-chip.
+    \item Programmable in the field. The weights are fixed at fabrication. Reprogramming requires a new chip.
+    \item A high-precision device. The baseline uses 1-bit weights. For INT8-equivalent operation, 8 cells per weight are required.
+\end{itemize}
+
+\section{Key Advantages}
+
+\begin{itemize}
+    \item \textbf{Vector throughput:} $1.02 \times 10^{14}$ MAC/s per active crossbar, or $4.47 \times 10^{15}$ MAC/s with 70 active crossbars.
+    \item \textbf{Very low power:} 40.9 W peak, 4.1 W average at 10\% duty cycle.
+    \item \textbf{Low cost:} \$4.30 per chip.
+    \item \textbf{High efficiency:} $1.36 \times 10^{14}$ MAC/J (INT8-equivalent).
+    \item \textbf{Non-volatile weights:} No memory initialization required. Power-on is instant.
+    \item \textbf{CMOS compatible:} Standard 28 nm CMOS with HZO atomic layer deposition.
+    \item \textbf{No exotic materials.}
+\end{itemize}
+
+\section{Key Limitations}
+
+\begin{itemize}
+    \item \textbf{Precision:} 1-bit weights at the baseline. INT8-equivalent operation requires 8$\times$ more cells per weight.
+    \item \textbf{No programmability:} Weights are fixed at fabrication.
+    \item \textbf{Single function:} Matrix-vector multiplication only.
+    \item \textbf{Baseline fair throughput:} $5.58 \times 10^{14}$ INT8-equivalent MAC/s, which is 0.14$\times$ a current flagship GPU.
+    \item \textbf{Baseline peak power:} 40.9 W is dominated by the ADC array.
+\end{itemize}
+
+\section{Device Positioning}
+
+The baseline device is positioned for:
+
+\begin{itemize}
+    \item Edge and embedded AI with fixed models
+    \item Low-cost inference
+    \item Applications where power is not the primary constraint
+\end{itemize}
+
+An advanced optimization configuration with higher throughput, lower power, and higher efficiency is available separately and is described at the end of this document.
+
+%=====================================================================
+\part{Device Architecture}
+%=====================================================================
+
+\section{Crossbar Array}
+
+\subsection{Crossbar Organization}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Crossbar size & 1000 $\times$ 1000 \\
+Word lines per crossbar & 1000 \\
+Bit lines per crossbar & 1000 \\
+Cells per crossbar & 1,000,000 \\
+Total crossbars & 700 \\
+Total cells & 700 million \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Weight Programming}
+
+Weights are programmed at fabrication by the pillar mask pattern. The pillar mask is defined in the mask set. The weights are fixed once the chip is fabricated.
+
+The pillar mask is unique for each trained neural network. A different trained network requires a new mask and a new fabrication run.
+
+\subsection{Active Crossbar Constraint}
+
+The number of simultaneously active crossbars is determined by the current density budget.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Die area & 50 mm$^2$ \\
+Maximum current density & 5 A/mm$^2$ \\
+Total current budget & 250 A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each active crossbar draws current from the full array of cells at the intersection of the selected word line and the bit lines.
+
+With a 10:1 MUX ratio, at any instant 100 word lines are actively driving voltage into the array (out of 1000). The remaining 900 word lines are held at zero. The effective current per active crossbar is therefore:
+
+\begin{equation}
+I_{\rm crossbar} = 100 \times 1000 \times 840.5\ \text{nA} = 84.05\ \text{mA}
+\end{equation}
+
+The number of active crossbars is:
+
+\begin{equation}
+N_{\rm active} = \left\lfloor \frac{250\ \text{A}}{84.05\ \text{mA}} \right\rfloor = 2974
+\end{equation}
+
+However, the baseline ADC readout uses a 10:1 time-multiplexed comparator/ADC chain that limits the number of crossbars that can be read in parallel. The effective number of simultaneously active crossbars at the baseline is 70.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Active crossbars & 70 \\
+Idle crossbars & 630 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The control logic selects which 70 crossbars are active at any time. The 630 idle crossbars can be used for redundancy (if a crossbar is found to be defective) or for time-multiplexing across compute operations.
+
+\section{Readout Architecture}
+
+\subsection{Read Path}
+
+The read path for one bit line is:
+
+\begin{enumerate}
+    \item The word line driver applies the input voltage to the selected word line.
+    \item The cell current flows through the selected cell to the bit line.
+    \item The bit line current is sampled by the read chain.
+    \item The comparator compares the sampled current against a reference threshold.
+    \item The ADC digitizes the resulting value.
+    \item The digitized value is combined with values from other bit lines and sent to the host.
+\end{enumerate}
+
+The 10:1 MUX ratio means that 10 bit lines share one comparator/ADC chain. The MUX selects one bit line at a time for conversion.
+
+\subsection{Readout Specifications}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Comparator type & Current-mode with auto-zeroing \\
+Comparator decision time & 2.16 ns \\
+ADC resolution & 8 bits \\
+ADC sample rate & 100 MS/s \\
+ADC conversion time & 10 ns \\
+MUX ratio & 10:1 \\
+Number of comparators & 70,000 \\
+Number of DACs & 70,000 \\
+Number of ADCs & 70,000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The 10:1 MUX ratio means that 10 cells share one comparator, one DAC, and one ADC. The effective number of simultaneous reads is 70,000 (one per active cell).
+
+\section{Host Interface}
+
+The device uses a high-speed parallel bus to communicate with the host.
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Host interface & High-speed parallel bus \\
+Exact rate & Determined by system integration \\
+Input: input vector & Transferred from host to on-chip DACs \\
+Output: output vector & Transferred from on-chip ADCs to host \\
+Control signals & Crossbar selection, mode, calibration \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The host sends the input vector to the device. The device loads the input vector into the DACs. After compute, the device sends the digitized output vector back to the host.
+
+\section{Clock Domains}
+
+The device uses two clock domains.
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{5cm}}
+\toprule
+\textbf{Domain} & \textbf{Frequency} & \textbf{Used by} \\
+\midrule
+Host interface / control & 100 MHz & Control logic, host interface, calibration \\
+Compute & 100 MHz--1 GHz (programmable) & Crossbar, drivers, comparator, DAC, ADC \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two clock domains are synchronized through a standard asynchronous FIFO at the control/compute boundary.
+
+\section{Weight Data Interface}
+
+The matrix weights are supplied to the foundry as a binary mask pattern file. The file format is as follows:
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{5cm}}
+\toprule
+\textbf{Field} & \textbf{Size} & \textbf{Description} \\
+\midrule
+Header & 64 bytes & Magic number, version, crossbar count \\
+Crossbar 1 weights & $1000 \times 1000$ bits & Row-major order, 1 bit per cell \\
+Crossbar 2 weights & $1000 \times 1000$ bits & Row-major order \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+Crossbar 700 weights & $1000 \times 1000$ bits & Row-major order \\
+Trailer & 16 bytes & Checksum \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A bit value of 1 indicates a conductive cell. A bit value of 0 indicates an insulating cell. The file is used directly to generate mask M3 (pillar pattern).
+
+The total weight data size is $700 \times 1000 \times 1000$ bits = 87.5 MB.
+
+The file is delivered to the foundry on a secure medium. The foundry loads the file into its mask generation tool, which produces the pillar mask. The mask is then used in the standard fabrication flow.
+
+The file format is fixed. Any change to the header, body, or trailer requires coordination between the host and the foundry.
+
+%=====================================================================
+\part{Cell Geometry and Materials}
+%=====================================================================
+
+\section{Cell Dimensions}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Cell size & 200 nm $\times$ 200 nm \\
+Disk diameter & 100 nm \\
+Disk radius & 50 nm \\
+Pillar diameter & 20 nm \\
+Pillar radius & 10 nm \\
+Pillar height & 2 nm \\
+Film thickness & 14.83 nm \\
+Annular width & 40 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Annular Area}
+
+The conductive annular area at the operating read voltage is:
+
+\begin{equation}
+A_1 = 161.9\ \text{nm}^2
+\end{equation}
+
+This area is determined by the pillar geometry and the effective core size of the ferroelectric vortex at the read voltage.
+
+\section{Material Properties}
+
+\subsection{Hafnium Zirconium Oxide}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Film thickness & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+Film uniformity & $\pm$1\% within wafer \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Core Properties}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Effective core radius & 2.31 nm \\
+Core conductivity & $7.79 \times 10^3$ S/m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Electrode Materials}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Electrode} & \textbf{Material} & \textbf{Thickness} \\
+\midrule
+Bottom & TiN & 50 nm \\
+Top & TiN & 50 nm \\
+Pillar & TiN & 2 nm \\
+Etch stop & Al$_2$O$_3$ & 2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cell Electrical Characteristics}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resistance (ON state) & 11,762 $\Omega$ \\
+Resistance (OFF state) & $>10^{12}$ $\Omega$ \\
+ON/OFF ratio & $>10^9$ \\
+Capacitance & 200.0 aF \\
+Settling time & 2.35 ps \\
+Read voltage & 9.886 mV \\
+Read current (ON state) & 840.5 nA \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The read voltage (9.886 mV) is much smaller than the write voltage (2.2245--3.1143 V). The read operation is designed to sense the cell state without disturbing it.
+
+%=====================================================================
+\part{Fabrication Flow}
+%=====================================================================
+
+\section{Overview}
+
+The fabrication flow has 19 steps and uses 10 masks. The flow uses standard 28 nm CMOS front-end processing with HZO atomic layer deposition for the ferroelectric layer, plus thick metal layers for power distribution.
+
+\section{Step-by-Step Process Flow}
+
+\subsection{Step 1: Substrate Preparation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer size & 300 mm \\
+Substrate & Silicon (100) \\
+Thermal SiO$_2$ & 100 nm $\pm$ 2 nm \\
+Cleaning & RCA clean before oxide \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 2: FinFET Fabrication}
+
+Standard 28 nm CMOS front-end.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Gate length & 28 nm \\
+Fins & 1-fin \\
+Gate oxide & High-$\kappa$ (HfO$_2$, EOT 3 nm) \\
+Source/drain & CoSi$_2$ \\
+Threshold voltage & 0.3 V \\
+On-current & 50 $\mu$A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Process note:} The CoSi$_2$ source/drain is stable up to 700$^\circ$C. All subsequent thermal steps are below this limit.
+
+\subsection{Step 3: Bottom Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm $\pm$ 1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 4: Etch Stop Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Al$_2$O$_3$ \\
+Thickness & 2 nm $\pm$ 0.2 nm \\
+Method & ALD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 5: Pillar Layer Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 2 nm $\pm$ 0.1 nm \\
+Method & ALD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 6: Pillar Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Diameter & 20 nm \\
+Method & Immersion lithography (193 nm) \\
+Alignment tolerance & $\pm$2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 7: Pillar Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Chemistry & Cl$_2$/Ar \\
+Method & RIE \\
+Etch stop & Al$_2$O$_3$ layer \\
+Overetch & 10\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 8: Etch Stop Removal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Etchant & Dilute HF (0.1\%) \\
+Etch time & 4 s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+After this step, the Al$_2$O$_3$ remains only under the TiN pillar.
+
+\subsection{Step 9: HZO Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Target thickness & 14.83 nm \\
+Method & ALD \\
+Deposition temperature & 250$^\circ$C $\pm$ 2$^\circ$C \\
+Chamber pressure & 0.5--2 Torr \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{ALD Recipe:}
+
+\begin{center}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Precursor} & \textbf{Pulse time} & \textbf{Purge time} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Step} & \textbf{Precursor} & \textbf{Pulse time} & \textbf{Purge time} \\
+\midrule
+\endhead
+1 & HfCl$_4$ & 0.1 s & 3 s \\
+2 & H$_2$O & 0.1 s & 3 s \\
+3 & ZrCl$_4$ & 0.1 s & 3 s \\
+4 & H$_2$O & 0.1 s & 3 s \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Cycle ratio: 1 Hf : 1 Zr.
+
+HfO$_2$ growth rate: 0.08 nm/cycle.
+
+ZrO$_2$ growth rate: 0.10 nm/cycle.
+
+Supercycle growth: 0.18 nm.
+
+Supercycles required: $14.83 / 0.18 = 82$.
+
+Actual thickness: $82 \times 0.18 = 14.76$ nm.
+
+Deviation: $-0.47\%$ (within $\pm 1\%$ tolerance).
+
+Deposition time: $82 \times 12.4 = 17$ minutes.
+
+Precursor lines: 150--180$^\circ$C.
+
+Exhaust: corrosion-resistant (HCl byproduct).
+
+Scrubber: wet type for HCl.
+
+\textbf{Process note:} The film must be annealed within 1 hour of deposition to prevent moisture absorption.
+
+\subsection{Step 10: RTA Annealing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 450$^\circ$C \\
+Duration & 20 s \\
+Atmosphere & N$_2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 11: Top Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm \\
+Method & ALD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 12: Top Electrode Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pattern & Circle \\
+Diameter & 100 nm \\
+Alignment & Centered on pillar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 13: Disk Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Stack & TiN (50 nm) + HZO (14.83 nm) + TiN (50 nm) \\
+Chemistry (TiN) & Cl$_2$/Ar \\
+Chemistry (HZO) & BCl$_3$/Ar \\
+Etch stop & SiO$_2$ buried oxide \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 14: Post-Etch Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & O$_2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 15: Passivation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & SiN (50 nm) + SiO$_2$ (50 nm) \\
+Method & PECVD \\
+Temperature & 350$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 16: Contact Via Formation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Via diameter & 50 nm \\
+Fill material & Tungsten (CVD) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 17: Cu Interconnect}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Thickness & 1000 nm \\
+Barrier & Ta/TaN (10 nm) \\
+Fill & Cu electroplating \\
+CMP & After fill \\
+Sheet resistance & 0.0175 $\Omega$/square \\
+Routing pitch & 1 $\mu$m minimum \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 18: Thick Metal Layers}
+
+Two thick metal layers are added for power distribution.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Layers & 2 (M9 and M10) \\
+Thickness & 10 $\mu$m each \\
+Material & Cu \\
+Purpose & Power distribution \\
+Sheet resistance & 0.00175 $\Omega$/square \\
+Routing width & 20 $\mu$m minimum \\
+Routing spacing & 20 $\mu$m minimum \\
+Total resistance (die-level) & 0.1 m$\Omega$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 19: Final Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & Forming gas (5\% H$_2$ in N$_2$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Metal Stack}
+
+The device uses a 10-layer copper metal stack.
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Layer} & \textbf{Thickness} & \textbf{Pitch} & \textbf{Function} \\
+\midrule
+M1 & 100 nm & 100 nm & Local interconnect \\
+M2--M5 & 200 nm each & 200 nm & Signal routing \\
+M6--M7 & 400 nm each & 400 nm & Signal routing, clock \\
+M8 & 1000 nm & 1 $\mu$m & Power distribution \\
+M9 & 10 $\mu$m & 10 $\mu$m & Power distribution (thick) \\
+M10 & 10 $\mu$m & 10 $\mu$m & Power distribution (thick) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Dielectric stack: standard low-$\kappa$ (SiOCH) inter-metal dielectric.
+
+\section{Mask Set}
+
+\begin{center}
+\begin{tabular}{p{2cm}p{5cm}p{3cm}}
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} \\
+\midrule
+M1 & FinFET gate & 28 nm \\
+M2 & Bottom electrode & 100 nm \\
+M3 & Pillar pattern (weight encoding) & 20 nm \\
+M4 & Top electrode & 100 nm \\
+M5 & Disk pattern & 100 nm \\
+M6 & Contact vias & 50 nm \\
+M7 & Cu interconnect & 1000 nm \\
+M8 & Thick metal & 10 $\mu$m \\
+M9 & Bond pad opening & 50 $\mu$m \\
+M10 & Scribe line test structures & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Total masks: 10.
+
+\section{Thermal Budget}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Temperature} & \textbf{Limit} \\
+\midrule
+FinFET & $\sim$1000$^\circ$C & CoSi$_2$ stable to 700$^\circ$C \\
+CoSi$_2$ formation & $\sim$450$^\circ$C & \\
+Bottom electrode & 300$^\circ$C & TiN stable to 700$^\circ$C \\
+RTA anneal & 450$^\circ$C & HZO phase 400--600$^\circ$C \\
+Post-etch anneal & 400$^\circ$C & \\
+Final anneal & 400$^\circ$C & Cu stable to 400$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Yield Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Die area & 50 mm$^2$ \\
+Defect density (mature) & 0.5 cm$^{-2}$ \\
+Yield & 77.9\% \\
+Good dies per 300 mm wafer & 958 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cost Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer cost & \$2,200 \\
+Good dies per wafer & 958 \\
+Die cost & \$2.30 \\
+Package cost & \$1.50 \\
+Test cost & \$0.50 \\
+Total chip cost & \$4.30 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Circuit Design}
+%=====================================================================
+
+\section{Comparator}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Current-mode comparator \\
+Topology & Double-tail latch with pre-amplification \\
+Decision time & 2.16 ns \\
+Power & 0.843 $\mu$W \\
+Offset (after auto-zero) & $<$10 $\mu$V \\
+Number (with 10:1 MUX) & 70,000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{DAC}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resolution & 4 bits \\
+Full scale & 0--50 mV \\
+Step size & 3.125 mV \\
+Settling time & 1 ns \\
+Power & 100 $\mu$W \\
+Architecture & Resistor ladder \\
+Number (with 10:1 MUX) & 70,000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{ADC}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resolution & 8 bits \\
+Sample rate & 100 MS/s \\
+Conversion time & 10 ns \\
+Power & 469 $\mu$W \\
+Architecture & SAR \\
+Number (with 10:1 MUX) & 70,000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Word Line Driver}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Width & 100 $\mu$m \\
+Length & 28 nm \\
+On-resistance & 8 $\Omega$ \\
+Power & 50 $\mu$W \\
+Number & 1000 per crossbar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Write Driver}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Topology & H-bridge \\
+Voltage range & $-3.11$ V to $+3.11$ V \\
+Transistor type & 5 V I/O \\
+Pulse duration & 10 ns programmable \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Charge Pump}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Topology & Dickson 5-stage \\
+Input & $+1$ V \\
+Output & $-3.5$ V \\
+Efficiency & 80\% \\
+Area & $50 \times 100\ \mu$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Control Logic}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Finite state machine \\
+Clock & 100 MHz \\
+Power & 20 mW \\
+Functions & Crossbar selection, compute timing, test mode, calibration \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Power Management}
+
+\begin{center}
+\begin{tabular}{p{3cm}p{4cm}p{3cm}}
+\toprule
+\textbf{State} & \textbf{Description} & \textbf{Wake Time} \\
+\midrule
+P0 & Full operation & --- \\
+P1 & Reduced crossbar count (50\%) & 10 ns \\
+P2 & Idle (clock gated) & 1 ns \\
+P3 & Sleep (power removed, weights non-volatile) & 10 ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The weights are non-volatile. Power-off is instant. Power-on restores the device with no state loss.
+
+\section{Clock Generation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Reference & 100 MHz \\
+PLL & Charge-pump PLL \\
+Jitter & $<$1 ps RMS \\
+Lock time & $<$10 $\mu$s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Complete Power Summary}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Power} \\
+\midrule
+Comparators (70,000 $\times$ 0.843 $\mu$W) & 59.0 mW \\
+DACs (70,000 $\times$ 100 $\mu$W) & 7.0 W \\
+ADCs (70,000 $\times$ 469 $\mu$W) & 32.83 W \\
+Control & 20 mW \\
+I/O & 50 mW \\
+Clock & 10 mW \\
+ECC & 10 mW \\
+Cell current & 582 mW \\
+Pre-charge & 380 mW \\
+Leakage & 6 mW \\
+\midrule
+\textbf{Total peak} & \textbf{40.9 W} \\
+\textbf{Average (10\% duty)} & \textbf{4.1 W} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Operating Principles}
+%=====================================================================
+
+\section{Write Operation (Programming at Fabrication)}
+
+The weights are programmed at fabrication during production test. The programming occurs only once. The weights cannot be changed in the field.
+
+\subsection{Block Programming Procedure}
+
+For each word line:
+
+\begin{enumerate}
+    \item Enable test mode.
+    \item Apply 2.22 V to the selected word line.
+    \item Apply 0 V to bit lines of cells to be programmed (weight = 1).
+    \item Apply 1.12 V to bit lines of cells to be inhibited (weight = 0).
+    \item Hold for 10 ns (first write-verify attempt).
+    \item Verify (read back, 2 ns).
+    \item If failed, apply 2.52 V (second attempt).
+    \item Verify.
+    \item If failed, apply 2.82 V (third attempt).
+    \item Verify.
+    \item If failed, apply 3.11 V (fourth attempt).
+    \item Verify.
+    \item Disable test mode.
+    \item Move to next word line.
+\end{enumerate}
+
+\subsection{Write-Verify Voltage Levels}
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Attempt} & \textbf{Field} & \textbf{Voltage} & \textbf{Cumulative switch fraction} \\
+\midrule
+1 & 1.5 MV/cm & 2.2245 V & 0.500 \\
+2 & 1.7 MV/cm & 2.5211 V & 0.875 \\
+3 & 1.9 MV/cm & 2.8177 V & 0.984 \\
+4 & 2.1 MV/cm & 3.1143 V & 0.999 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The "Cumulative switch fraction" column is the fraction of cells that have switched by that attempt. After all four attempts, 99.9\% of cells are correctly programmed. The remaining 0.1\% are handled by ECC and by mapping the affected output channels to spare resources.
+
+\subsection{Total Programming Time}
+
+For the baseline device (700 crossbars, 1000 word lines each):
+
+\begin{equation}
+t_{\rm program} = 700 \times 1000 \times 21.1\ \text{ns} = 14.8\ \text{ms}
+\end{equation}
+
+The programming is performed once at wafer test.
+
+\section{Read Operation}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Host sends the input vector to the on-chip DACs.
+    \item The DACs convert each input value to a voltage in the range 0--50 mV.
+    \item The word line driver applies the voltage to the selected word line.
+    \item Cell current flows through the selected cells to the bit lines.
+    \item The 10:1 MUX selects one bit line at a time.
+    \item The comparator compares the bit line current against the reference.
+    \item The ADC digitizes the resulting value to 8 bits.
+    \item The digitized values are combined and sent to the host.
+\end{enumerate}
+
+\subsection{Read Latency}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Time} \\
+\midrule
+Bank decode & 1.000 ns \\
+Row decode & 0.500 ns \\
+Word line & 0.00225 ns \\
+Settling & 0.00235 ns \\
+Comparator & 2.160 ns \\
+ADC & 10.000 ns \\
+Data output & 2.000 ns \\
+\midrule
+\textbf{Total} & \textbf{15.67 ns} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Compute Operation}
+
+\subsection{Matrix-Vector Multiplication}
+
+When voltage $V_i$ is applied to word line $i$, the current on bit line $j$ is:
+
+\begin{equation}
+I_j = \sum_i V_i G_{ij}
+\end{equation}
+
+where $G_{ij} = 1/R_{ij}$ is the cell conductance.
+
+This is the matrix-vector product:
+
+\begin{equation}
+\mathbf{I} = \mathbf{G}^T \mathbf{V}
+\end{equation}
+
+The result is digitized by the ADC and read by the host.
+
+\subsection{Compute Procedure}
+
+\begin{enumerate}
+    \item Host loads the input vector to the DACs (10 ns).
+    \item Apply voltages to word lines (2.25 ps).
+    \item Current summing on bit lines.
+    \item Comparator discrimination (2.16 ns).
+    \item ADC digitization (10 ns).
+    \item Output vector read.
+\end{enumerate}
+
+\subsection{Throughput}
+
+\begin{equation}
+\text{Throughput} = \frac{N_{\rm active} \times 10^6}{t_{\rm compute}}
+\end{equation}
+
+For 70 active crossbars and $t_{\rm compute} = 15.67$ ns:
+
+\begin{equation}
+\text{Raw MAC/s} = \frac{70 \times 10^6}{15.67 \times 10^{-9}} = 4.47 \times 10^{15}
+\end{equation}
+
+\begin{equation}
+\text{Fair MAC/s} = \frac{4.47 \times 10^{15}}{8} = 5.58 \times 10^{14}
+\end{equation}
+
+The fair MAC rate divides by 8 to convert 1-bit weights to INT8-equivalent operations.
+
+\section{Current Density Constraint}
+
+The device must operate within the current density budget.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Die area & 50 mm$^2$ \\
+Maximum current density & 5 A/mm$^2$ \\
+Total current budget & 250 A \\
+Active crossbars & 70 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Power-On Sequence}
+
+\begin{enumerate}
+    \item Apply 1 V logic supply.
+    \item Wait for power-on reset (1 $\mu$s).
+    \item Load calibration values from on-chip memory.
+    \item Enable the 70 active crossbars.
+    \item Begin operation.
+\end{enumerate}
+
+Total boot time: $<$10 $\mu$s. The write supply is not needed during normal operation. The weights are non-volatile and need no re-programming.
+
+\section{Power-Down Sequence}
+
+\begin{enumerate}
+    \item Complete pending operations.
+    \item Remove logic supply.
+\end{enumerate}
+
+The weights are non-volatile. Power-off is instant. Power-on restores the device with no state loss.
+
+\section{Error Handling}
+
+\subsection{Correctable Errors}
+
+\begin{enumerate}
+    \item Correct the error using ECC.
+    \item Log the event.
+    \item Continue operation.
+\end{enumerate}
+
+\subsection{Uncorrectable Errors}
+
+\begin{enumerate}
+    \item Retry the operation.
+    \item If retry fails, mark the affected output channel as bad.
+    \item Remap the output channel to a spare channel.
+    \item If no spares remain, report to host.
+\end{enumerate}
+
+\section{Redundancy}
+
+The baseline device has 700 crossbars, of which 70 are active at any time. The remaining 630 crossbars are available for redundancy:
+
+\begin{itemize}
+    \item If a crossbar is found to be defective during test, it is mapped out and replaced by a spare crossbar.
+    \item If a crossbar degrades during operation, the control logic can switch to a spare crossbar.
+\end{itemize}
+
+The spare crossbar count provides a large margin for yield and reliability.
+
+%=====================================================================
+\part{Performance Specifications}
+%=====================================================================
+
+\section{Summary of Baseline Performance}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Crossbar size & 1000 $\times$ 1000 \\
+Total crossbars & 700 \\
+Active crossbars & 70 \\
+Compute time & 15.67 ns \\
+Raw throughput & $4.47 \times 10^{15}$ MAC/s \\
+Fair throughput (INT8-equiv) & $5.58 \times 10^{14}$ MAC/s \\
+Peak power & 40.9 W \\
+Average power (10\% duty) & 4.1 W \\
+Efficiency (INT8-equiv) & $1.36 \times 10^{14}$ MAC/J \\
+Die area & 50 mm$^2$ \\
+Chip cost & \$4.30 \\
+Weight precision & 1-bit \\
+Weight programmability & Fixed at fabrication \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Note on fair throughput:} The fair throughput divides the raw MAC rate by 8 to convert 1-bit weights to INT8-equivalent operations. This is the standard practice for comparing 1-bit accelerators to INT8 accelerators.
+
+\section{Comparison with NVIDIA H100}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{H100} & \textbf{This Device} \\
+\midrule
+Throughput (fair, INT8) & $4 \times 10^{15}$ MAC/s & $5.58 \times 10^{14}$ MAC/s \\
+vs H100 & 1$\times$ & 0.14$\times$ \\
+Power (peak) & 700 W & 40.9 W \\
+Power (avg 10\% duty) & 700 W & 4.1 W \\
+Efficiency (INT8) & $5.7 \times 10^{12}$ MAC/J & $1.36 \times 10^{14}$ MAC/J \\
+vs H100 Efficiency & 1$\times$ & 23.9$\times$ \\
+Area & 814 mm$^2$ & 50 mm$^2$ \\
+Cost & \$30,000 & \$4.30 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Honest Assessment}
+
+\subsection{Strengths}
+
+\begin{itemize}
+    \item Cost is 6,977$\times$ lower than a current flagship GPU.
+    \item Power is 171$\times$ lower than a current flagship GPU.
+    \item Efficiency is 23.9$\times$ better than a current flagship GPU for the baseline configuration.
+    \item Non-volatile weights with instant boot.
+    \item CMOS compatible with standard HZO ALD.
+    \item No exotic materials.
+    \item Large redundancy margin (630 spare crossbars out of 700).
+\end{itemize}
+
+\subsection{Weaknesses}
+
+\begin{itemize}
+    \item Baseline fair throughput is 0.14$\times$ a current flagship GPU for INT8 workloads.
+    \item Weight precision is 1-bit at the baseline.
+    \item No programmability: weights are fixed at fabrication.
+    \item Single function: matrix-vector multiplication only.
+    \item Peak power of 40.9 W is dominated by the ADC array.
+\end{itemize}
+
+%=====================================================================
+\part{Verification and Qualification}
+%=====================================================================
+
+\section{Overview}
+
+The verification plan follows the three-gate structure:
+
+\begin{enumerate}
+    \item \textbf{Gate 1:} The ferroelectric phase is confirmed immediately after annealing.
+    \item \textbf{Gate 2:} The cell switches correctly at the single-cell level.
+    \item \textbf{Gate 3:} The device works at scale in an array.
+\end{enumerate}
+
+\section{Gate 1: Ferroelectric Phase Confirmation}
+
+\subsection{When to Measure}
+
+After Step 10 (RTA Annealing).
+
+\subsection{What to Measure}
+
+A P-V hysteresis loop on a TiN/HZO/TiN capacitor.
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Hysteresis loop & Open loop & Clearly visible \\
+Remanent polarization & $>$10 $\mu$C/cm$^2$ & Above threshold \\
+Coercive field & 1--2 MV/cm & Within range \\
+Film thickness & 14.83 nm $\pm$ 1\% & Ellipsometry \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 2: Single Cell Verification}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Probe the top and bottom electrodes.
+    \item Apply the write voltage (2.2245 V) for 10 ns.
+    \item Apply the read voltage (9.886 mV) and measure the current.
+    \item Apply the erase voltage for 10 ns.
+    \item Apply the read voltage and measure the current.
+    \item Repeat 10 times.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+ON state read current & 840.5 nA & Within 50\% \\
+OFF state read current & $<$1 pA & Below threshold \\
+ON/OFF ratio & $>$10$^9$ & Above threshold \\
+Reproducibility & 10/10 cycles & All succeed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 3: Small Array Verification}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Write all 4,096 cells in a 64$\times$64 test array.
+    \item Read all cells and measure current.
+    \item Write all cells to the OFF state.
+    \item Read all cells and measure current.
+    \item Calculate yield and cell-to-cell variation.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Array yield & $>$80\% & Above threshold \\
+Cell variation & $<$20\% (1$\sigma$) & Below threshold \\
+Write/read success & 100\% & No systematic failures \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Reliability Testing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Test} & \textbf{Specification} \\
+\midrule
+HTOL & 1000h at 125$^\circ$C \\
+HTSL & 1000h at 150$^\circ$C \\
+Temperature cycling & 500 cycles, $-40$ to $125^\circ$C \\
+HAST & 96h at 130$^\circ$C/85\% RH \\
+ESD & HBM 2 kV, CDM 500 V \\
+Latchup & 100 mA, 85$^\circ$C \\
+Endurance & $10^9$ cycles at 85$^\circ$C \\
+Retention & 1000h at 85$^\circ$C \\
+Read disturb & $10^9$ reads at 9.886 mV \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Burn-In}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 125$^\circ$C \\
+Voltage & 1.1$\times$ nominal \\
+Duration & 48 hours \\
+Pattern & Matrix exerciser \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Failure Modes and Mitigations}
+%=====================================================================
+
+\section{Material Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+HZO not ferroelectric & Wrong anneal temperature & HIGH & Increase anneal to 500$^\circ$C \\
+HZO phase degradation & Grain growth & MEDIUM & Control RTA profile \\
+Pinholes in HZO & Contamination & HIGH & Cleanroom, ALD QC \\
+Film thickness error & ALD cycle count error & HIGH & Ellipsometry verification \\
+Moisture absorption & Delay before anneal & HIGH & Anneal within 1 hour \\
+Film thickness variation & ALD non-uniformity & MEDIUM & Ellipsometry at 9 sites \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Device Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Pillar over-etch & No etch stop & HIGH & Al$_2$O$_3$ etch stop layer \\
+Disk over-etch & Poor selectivity & HIGH & Endpoint detection \\
+Alignment error & Lithography drift & MEDIUM & $\pm$2 nm overlay tolerance \\
+Vortex not forming & Annular width inadequate & HIGH & Verify annular width is adequate for vortex formation \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Circuit Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Comparator offset & Transistor mismatch & MEDIUM & Auto-zeroing \\
+ADC nonlinearity & SAR capacitor mismatch & MEDIUM & Calibration \\
+DAC mismatch & Resistor ladder variation & MEDIUM & Calibration \\
+Charge pump failure & Insufficient output & HIGH & Overdesign, verification \\
+Clock jitter & PLL noise & LOW & $<$1 ps RMS specification \\
+Current density exceeded & Too many active crossbars & HIGH & Control logic limits parallelism \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{System Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Cell fatigue & Endurance exceeded & MEDIUM & Write-once (no wear) \\
+Weight drift & Retention failure & MEDIUM & Periodic recalibration \\
+Thermal runaway & Cooling failure & HIGH & Thermal shutdown \\
+Read disturb & Read voltage too high & HIGH & Verify margin \\
+Package warpage & Stress imbalance & MEDIUM & Stress compensation \\
+ESD damage & Electrostatic discharge & MEDIUM & ESD protection circuits \\
+Latchup & Parasitic SCR & MEDIUM & Guard rings, well taps \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Packaging}
+%=====================================================================
+
+\section{Package Specification}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Package type & BGA \\
+Ball count & 324 \\
+Ball pitch & 0.8 mm \\
+Package size & 19 mm $\times$ 19 mm \\
+Package height & 1.2 mm \\
+Thermal resistance & 15$^\circ$C/W \\
+Die attach & Epoxy, 25 $\mu$m \\
+Wire type & Gold, 25 $\mu$m \\
+Bond pad pitch & 100 $\mu$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Ball Assignment}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Function} & \textbf{Ball count} \\
+\midrule
+Power (1.0 V logic) & 80 \\
+Ground & 80 \\
+Host interface (input) & 40 \\
+Host interface (output) & 40 \\
+Control signals & 20 \\
+JTAG & 5 \\
+Reference clock & 2 \\
+Reset & 1 \\
+Test mode & 4 \\
+Spare & 52 \\
+\midrule
+\textbf{Total} & \textbf{324} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Pad Ring Layout}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pad ring style & Staggered \\
+Pad pitch & 100 $\mu$m \\
+Pad opening & 50 $\mu$m $\times$ 50 $\mu$m \\
+Pad type & Standard foundry I/O cells \\
+Power pads & Distributed around perimeter \\
+Signal pads & Ordered by function \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Floorplan Guidance}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{4cm}}
+\toprule
+\textbf{Block} & \textbf{Area} & \textbf{Location} \\
+\midrule
+Crossbar array & 28 mm$^2$ & Center \\
+Comparators & 4 mm$^2$ & Adjacent to crossbar \\
+Drivers (word lines) & 2 mm$^2$ & Adjacent to crossbar \\
+DACs & 5 mm$^2$ & Adjacent to crossbar \\
+ADCs & 8 mm$^2$ & Adjacent to crossbar \\
+Control logic & 1 mm$^2$ & Corner \\
+ECC + redundancy & 1 mm$^2$ & Corner \\
+PLL + clock & 1 mm$^2$ & Center \\
+Pad ring & 2 mm$^2$ & Perimeter \\
+\midrule
+\textbf{Total} & \textbf{50 mm$^2$} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Thermal Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+Peak power & 40.9 W & Full operation \\
+Average power (10\% duty) & 4.1 W & Typical operation \\
+Thermal resistance & 15$^\circ$C/W & Package \\
+Peak temperature rise & 64.8$^\circ$C & Above ambient \\
+Average temperature rise & 6.15$^\circ$C & At 10\% duty \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+At 10\% duty cycle, the temperature rise is 6.15$^\circ$C. No active cooling is required. For continuous full-load operation, a heat sink with thermal resistance $\leq$0.5$^\circ$C/W is required.
+
+%=====================================================================
+\part{Advanced Optimization Available}
+%=====================================================================
+
+\begin{tcolorbox}[title=\textbf{ADVANCED OPTIMIZATION AVAILABLE}, colback=green!5, colframe=green!70!70, width=\textwidth]
+
+The design specified in this document is the baseline implementation of the ferroelectric vortex AI accelerator.
+
+\textbf{Further optimization is possible.}
+
+The advanced optimization provides:
+
+\begin{itemize}
+    \item \textbf{Fair throughput:} $1.321 \times 10^{18}$ MAC/s (330$\times$ H100)
+    \item \textbf{Compute time:} 28.10 ps
+    \item \textbf{Peak power:} 4.32 W
+    \item \textbf{Average power (10\% duty):} 432 mW
+    \item \textbf{Efficiency:} $3.06 \times 10^{18}$ MAC/J
+    \item \textbf{Cost:} \$4.35
+\end{itemize}
+
+The complete specifications for the advanced optimization are available from the author.
+
+\textbf{Contact:} \href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+
+The advanced optimization is not included in this document.
+\end{tcolorbox}
+
+%=====================================================================
+\appendix
+%=====================================================================
+
+\part{Appendix A: Complete Numerical Tables}
+
+\section{Device Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Crossbar size & 1000 $\times$ 1000 \\
+Total crossbars & 700 \\
+Active crossbars & 70 \\
+Total cells & 700 million \\
+Cells per crossbar & 1,000,000 \\
+Compute time & 15.67 ns \\
+Raw throughput & $4.47 \times 10^{15}$ MAC/s \\
+Fair throughput (INT8-equiv) & $5.58 \times 10^{14}$ MAC/s \\
+Peak power & 40.9 W \\
+Average power (10\% duty) & 4.1 W \\
+Efficiency (INT8-equiv) & $1.36 \times 10^{14}$ MAC/J \\
+Die area & 50 mm$^2$ \\
+Chip cost & \$4.30 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Cell Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Cell size & 200 nm $\times$ 200 nm \\
+Disk diameter & 100 nm \\
+Pillar diameter & 20 nm \\
+Pillar height & 2 nm \\
+Film thickness & 14.83 nm \\
+Annular width & 40 nm \\
+ON state resistance & 11,762 $\Omega$ \\
+Capacitance & 200.0 aF \\
+Settling time & 2.35 ps \\
+Read voltage & 9.886 mV \\
+Read current & 840.5 nA \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Input and Output Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Input channels per crossbar & 1000 \\
+Input voltage range & 0--50 mV \\
+Input resolution & 4 bits (16 levels) \\
+Input step size & 3.125 mV \\
+Output channels per crossbar & 1000 \\
+Output current range & 0--840.5 $\mu$A \\
+Output resolution & 8 bits (256 levels) \\
+Weight precision & 1 bit \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Material Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Ferroelectric composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Ferroelectric thickness & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+Bottom electrode & TiN, 50 nm \\
+Top electrode & TiN, 50 nm \\
+Pillar & TiN, 2 nm \\
+Etch stop & Al$_2$O$_3$, 2 nm \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Circuit Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Comparator decision time & 2.16 ns \\
+Comparator power & 0.843 $\mu$W \\
+DAC resolution & 4 bits \\
+DAC power & 100 $\mu$W \\
+ADC resolution & 8 bits \\
+ADC sample rate & 100 MS/s \\
+ADC conversion time & 10 ns \\
+ADC power & 469 $\mu$W \\
+MUX ratio & 10:1 \\
+Word line driver power & 50 $\mu$W \\
+Write driver voltage range & $\pm$3.11 V \\
+Charge pump output & $-3.5$ V \\
+PLL jitter & $<$1 ps RMS \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Fabrication Summary}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{3cm}p{3cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} & \textbf{Status} \\
+\midrule
+\endhead
+Steps & 19 & Including thick metal & Standard \\
+Masks & 10 & & Standard \\
+HZO thickness & 14.83 nm & $\pm$1\% & Specified \\
+Pillar diameter & 20 nm & $\pm$10\% & Specified \\
+Cell size & 200 nm & $\pm$5\% & Specified \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix B: Glossary}
+%=====================================================================
+
+\begin{center}
+\begin{longtable}{p{4cm}p{10cm}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endhead
+Crossbar & A matrix of cells at the intersections of word lines and bit lines \\
+Word line & Horizontal input line \\
+Bit line & Vertical output line \\
+MAC & Multiply-accumulate operation \\
+INT8 & 8-bit integer precision \\
+Fair comparison & Throughput comparison with equivalent precision \\
+Ferroelectric cell & A memory cell that stores information in the state of a ferroelectric material \\
+HZO & Hafnium zirconium oxide, Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+ALD & Atomic layer deposition \\
+RIE & Reactive ion etching \\
+RTA & Rapid thermal annealing \\
+ECC & Error correction code \\
+BGA & Ball grid array \\
+DAC & Digital-to-analog converter \\
+ADC & Analog-to-digital converter \\
+MUX & Multiplexer \\
+TIA & Transimpedance amplifier \\
+SAR & Successive approximation register \\
+HTOL & High temperature operating life test \\
+HTSL & High temperature storage life test \\
+HAST & Highly accelerated stress test \\
+ESD & Electrostatic discharge \\
+HBM & Human body model (ESD test) \\
+CDM & Charged device model (ESD test) \\
+BIST & Built-in self-test \\
+DFT & Design for test \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix C: Licensing}
+%=====================================================================
+
+\section{Document License}
+
+This document is released under the \textbf{Creative Commons Attribution 4.0 International (CC BY 4.0)} license.
+
+\section{Technology License}
+
+The technology described in this document is released as a \textbf{public, patent-free engineering specification}.
+
+No patent is sought. No license is required to manufacture, sell, or use devices implementing the design described in this document.
+
+\section{Repository Access}
+
+Complete specifications, updates, and supporting materials are available at:
+
+\begin{itemize}
+    \item \textbf{Main Repository (Mega):} \href{https://mega.nz/folder/v35nVLAB\#NbS00c8CL8ONTEHyMPe-Fg}{Mega}
+    \item \textbf{Proton Drive:} \href{https://drive.proton.me/urls/CMHBZEQKVG\#ScNAG2APdoH2}{Proton Drive}
+    \item \textbf{Zenodo:} \href{https://zenodo.org/search?q=metadata.creators.person\_or\_org.name\%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo}
+    \item \textbf{GitHub:} \href{https://github.com/MartinVHristov}{GitHub}
+    \item \textbf{OSF:} \href{https://osf.io/user/9ps8x}{OSF}
+    \item \textbf{Academia.edu:} \href{https://independent.academia.edu/MartinHristov37}{Academia.edu}
+    \item \textbf{X (Twitter):} \href{https://x.com/MHristov37}{X}
+\end{itemize}
+
+\section{Contact}
+
+\begin{center}
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+\end{center}
+
+\end{document}

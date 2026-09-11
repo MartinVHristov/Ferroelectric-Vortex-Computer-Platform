@@ -1,0 +1,2103 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{cleveref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{longtable}
+
+\sisetup{detect-all=true}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdftitle={Ferroelectric Vortex Memory Platform: Complete Engineering Specification},
+    pdfauthor={Martin Hristov},
+    pdfsubject={Non-Volatile Memory, Ferroelectric Vortex, Storage-Class Memory},
+    pdfkeywords={non-volatile memory, ferroelectric vortex, storage-class memory, engineering spec}
+}
+
+\title{\textbf{Ferroelectric Vortex Memory Platform}\\
+\large Complete Engineering Specification}
+\author{Martin Hristov}
+\date{11 September 2026}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \bfseries Ferroelectric Vortex Memory Platform}\\[0.3cm]
+{\Large \bfseries Complete Engineering Specification}\\[2cm]
+
+{\large Martin Hristov}\\[0.5cm]
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}\\[2cm]
+\texttt{11 September 2026}\\[2cm]
+
+\begin{center}
+\textbf{Document Type:} Engineering Design --- Core Specification\\
+\textbf{Document License:} CC BY 4.0\\
+\textbf{6DUFT Framework License:} CC BY 4.0\\
+\textbf{Technology Patent Status:} \textcolor{red}{\textbf{PUBLIC RELEASE --- NO PATENT SOUGHT}}\\
+\textbf{Advanced Optimization:} \textit{Available later in this document}\\
+\textbf{Repository:}
+\href{https://mega.nz/folder/v35nVLAB#NbS00c8CL8ONTEHyMPe-Fg}{Mega} \,|\,
+\href{https://drive.proton.me/urls/CMHBZEQKVG#ScNAG2APdoH2}{Proton Drive} \,|\,
+\href{https://zenodo.org/search?q=metadata.creators.person_or_org.name%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo} \,|\,
+\href{https://github.com/MartinVHristov}{GitHub} \,|\,
+\href{https://osf.io/user/9ps8x}{OSF} \,|\,
+\href{https://independent.academia.edu/MartinHristov37}{Academia} \,|\,
+\href{https://x.com/MHristov37}{X}
+\end{center}
+
+\vfill
+{\small This document provides the complete engineering specification for a non-volatile memory device based on ferroelectric vortex cells. All cell geometries, material compositions, fabrication steps, circuit designs, operating procedures, qualification tests, and acceptance criteria are provided explicitly. Every parameter required to build, test, and operate the baseline device is included. The design is released as a public, patent-free engineering specification. An advanced optimization configuration is offered separately and is described at the end of this document.}
+
+\vspace{1cm}
+
+\begin{center}
+\textbf{This is a 6DUFT inspired technology.}
+\end{center}
+
+\end{titlepage}
+
+\newpage
+\begin{abstract}
+This document is the complete engineering specification for a non-volatile memory device based on ferroelectric vortex cells.
+
+Each cell stores information in the topological winding number of a ferroelectric vortex pinned at a central TiN pillar. The vortex core is conductive, enabling resistance-based readout. The device provides non-volatile storage with low read latency, very low write energy, and very low power consumption.
+
+The baseline device provides:
+
+\begin{itemize}
+    \item \textbf{Density:} 1.95 GB/cm$^2$
+    \item \textbf{Capacity:} 1.95 GB on a 100 mm$^2$ die
+    \item \textbf{Read latency:} 3.80 ns
+    \item \textbf{Write latency:} 21.1 ns
+    \item \textbf{Write energy:} 595 fJ per bit
+    \item \textbf{Endurance:} $2.74 \times 10^{10}$ cycles
+    \item \textbf{Retention:} $>$10 years at 85$^\circ$C
+    \item \textbf{Power:} 97.2 mW on a 100 mm$^2$ die
+    \item \textbf{Die cost:} \$5.36
+    \item \textbf{Chip cost:} \$7.36
+    \item \textbf{Cost per GB:} \$2.75 (die-cost basis)
+\end{itemize}
+
+The device uses standard 28 nm CMOS with hafnium zirconium oxide (Hf$_{0.5}$Zr$_{0.5}$O$_2$, HZO) atomic layer deposition. No exotic materials are required. The complete fabrication flow has 18 steps and 10 masks.
+
+The document covers cell architecture, material specifications, the complete fabrication flow, circuit design, operating principles, performance specifications, verification and qualification, failure modes and mitigations, packaging, and an advanced optimization configuration available separately.
+
+The design is released openly. No patent is sought.
+
+\textbf{This is a 6DUFT inspired technology.}
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+%=====================================================================
+\part{Introduction and Overview}
+%=====================================================================
+
+\section{Purpose and Scope}
+
+This document is the complete engineering specification for a non-volatile memory device based on ferroelectric vortex cells.
+
+It provides every parameter, process step, circuit specification, and procedure required to build, test, and operate the baseline device.
+
+The document is written for:
+
+\begin{itemize}
+    \item Foundry process engineers who will fabricate the device.
+    \item Circuit designers who will integrate the device.
+    \item Test engineers who will qualify the device.
+    \item System engineers who will deploy the device.
+\end{itemize}
+
+No prior knowledge of any theoretical framework is required. All necessary engineering information is contained in this document.
+
+\section{What the Device Is}
+
+The device is a non-volatile memory that stores information in the topological winding number of a ferroelectric vortex.
+
+Each memory cell consists of:
+
+\begin{itemize}
+    \item A ferroelectric nanodisk made of hafnium zirconium oxide (HZO).
+    \item A central TiN pinning pillar.
+    \item A bottom electrode (TiN).
+    \item A top electrode (TiN).
+    \item A select transistor (FinFET).
+\end{itemize}
+
+The polarization field in the ferroelectric disk forms a vortex around the pinning pillar. The vortex has an integer winding number $n$ that describes how many times the polarization rotates around the pillar.
+
+The vortex core is a narrow region where the polarization is suppressed. The core is conductive because the polarization suppression creates a deep potential well with high carrier density.
+
+The winding number determines the core geometry, which determines the electrical resistance between the top and bottom electrodes. Reading the resistance reveals the stored winding number.
+
+For binary operation:
+
+\begin{itemize}
+    \item $n=0$: uniform polarization, no vortex, resistance $>10^{12}\ \Omega$.
+    \item $n=1$: single vortex, resistance in the k$\Omega$ range.
+\end{itemize}
+
+The ON/OFF ratio exceeds $10^9$, making binary discrimination straightforward.
+
+\section{What the Device Is Not}
+
+The device is not:
+
+\begin{itemize}
+    \item A DRAM replacement. DRAM has higher endurance ($10^{16}$ cycles vs.\ $2.74 \times 10^{10}$ cycles). This device is for applications where non-volatility, low power, and high density matter more than unlimited endurance.
+
+    \item A NAND replacement at the baseline tier. NAND has lower cost per bit at the baseline tier. The device becomes cheaper than NAND at the advanced optimization configuration.
+
+    \item A compute device. The device is a storage device. It does not perform matrix-vector multiplication.
+
+    \item A general-purpose memory. The write-verify procedure adds latency to writes. The device is optimized for read-heavy workloads.
+\end{itemize}
+
+\section{Key Advantages}
+
+\begin{itemize}
+    \item \textbf{Non-volatile:} Data is retained without power. 10+ year retention at 85$^\circ$C.
+
+    \item \textbf{High density:} 1.95 GB/cm$^2$ at the baseline tier, which is 15.6$\times$ denser than DRAM.
+
+    \item \textbf{Fast read:} 3.80 ns read latency, which is 13,158$\times$ faster than NAND flash.
+
+    \item \textbf{Low write energy:} 595 fJ per bit, which is 16.8$\times$ lower than DRAM.
+
+    \item \textbf{Very low power:} 97.2 mW for a 100 mm$^2$ die, which is 31--51$\times$ lower than DRAM.
+
+    \item \textbf{CMOS compatible:} Standard 28 nm CMOS with HZO atomic layer deposition. No exotic materials.
+\end{itemize}
+
+\section{Key Limitations}
+
+\begin{itemize}
+    \item \textbf{Lower endurance than DRAM:} $2.74 \times 10^{10}$ cycles vs.\ $10^{16}$ cycles. Wear leveling is required for write-intensive applications.
+
+    \item \textbf{Write-verify required:} The write operation requires a verify step to ensure reliable switching, increasing the write latency.
+
+    \item \textbf{Baseline cost:} The baseline cost per GB is higher than NAND flash. The cost advantage appears at the advanced optimization configuration.
+\end{itemize}
+
+\section{Device Positioning}
+
+The baseline device is positioned for:
+
+\begin{itemize}
+    \item Embedded memory
+    \item Low-volume production
+    \item Educational and research use
+    \item Applications where the HZO process is already established
+\end{itemize}
+
+An advanced optimization configuration with higher density, lower write energy, and lower cost per GB is available separately and is described at the end of this document.
+
+%=====================================================================
+\part{Device Architecture}
+%=====================================================================
+
+\section{Cell Structure}
+
+\subsection{Layer Stack}
+
+Each memory cell is a vertical stack of the following layers, from bottom to top:
+
+\begin{center}
+\begin{tabular}{p{3cm}p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Layer} & \textbf{Material} & \textbf{Thickness} & \textbf{Function} \\
+\midrule
+Bottom electrode & TiN & 50 nm & Electrical contact \\
+Etch stop & Al$_2$O$_3$ & 2 nm & Protects bottom electrode during pillar etch \\
+Pillar & TiN & 1.96 nm & Vortex pinning center \\
+Ferroelectric & Hf$_{0.5}$Zr$_{0.5}$O$_2$ & 14.83 nm & Storage medium \\
+Top electrode & TiN & 50 nm & Electrical contact \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Top-Down Geometry}
+
+The top-down geometry of the cell is:
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Cell size & 80 nm $\times$ 80 nm \\
+Disk diameter & 40 nm \\
+Pillar diameter & 20 nm \\
+Annular width (pillar to disk edge) & 10 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The ferroelectric disk is circular, centered on the pillar. The annular region between the pillar and the disk edge is where the vortex forms.
+
+\subsection{Select Transistor}
+
+Each cell is connected to a select transistor.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & FinFET \\
+Fins & 3 \\
+Gate length & 28 nm \\
+Gate oxide & High-$\kappa$ (HfO$_2$, EOT 3 nm) \\
+Source/drain & CoSi$_2$ \\
+Threshold voltage & 0.3 V \\
+On-current & 299 $\mu$A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Array Organization}
+
+\subsection{Bank Structure}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Number of banks & 16 \\
+Capacity per bank (100 mm$^2$) & 122 MB \\
+Bank address bits & 4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Up to 4 banks can be active simultaneously for parallel reads and writes.
+
+\subsection{Row and Column Organization}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Rows per bank & 1024 \\
+Columns per bank & 1024 \\
+Word lines per bank & 1024 \\
+Bit lines per bank & 1024 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Readout Architecture}
+
+Each bit line is connected to a comparator that discriminates between the two resistance states.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Comparator type & Current-mode with auto-zeroing \\
+Decision time & 199.5 ps \\
+Supply voltage & 1.0 V \\
+Number of comparators & 1024 (one per bit line) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The comparator includes an auto-zeroing circuit that cancels offset. Auto-zeroing is scheduled during idle cycles and does not affect read latency.
+
+\section{Write Architecture}
+
+Each word line is connected to a write driver that applies the write voltage.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Write driver type & H-bridge \\
+Write voltage range & $-3.2$ V to $+3.2$ V \\
+Rise time & 300 ps \\
+Fall time & 300 ps \\
+Transistor type & 5 V I/O \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A negative charge pump generates the erase voltage.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Charge pump type & Dickson 4-stage \\
+Input & $+1$ V \\
+Output & $-3.2$ V \\
+Efficiency & 80\% \\
+Power & 302 $\mu$W \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Cell Geometry and Materials}
+%=====================================================================
+
+\section{Cell Dimensions}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Cell size & 80 nm $\times$ 80 nm \\
+Disk diameter & 40 nm \\
+Disk radius & 20 nm \\
+Pillar diameter & 20 nm \\
+Pillar radius & 10 nm \\
+Pillar height & 1.96 nm \\
+Annular width & 10 nm \\
+Film thickness & 14.83 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Annular Area}
+
+The annular area for $n=1$ is:
+
+\begin{equation}
+A_1 = \pi[(r_{\rm pillar} + r_{\rm core})^2 - r_{\rm pillar}^2]
+\end{equation}
+
+where $r_{\rm core}$ is the vortex core radius. With $r_{\rm pillar} = 10$ nm and a vortex core radius of 2.31 nm:
+
+\begin{equation}
+A_1 = \pi[(10\ \text{nm} + 2.31\ \text{nm})^2 - (10\ \text{nm})^2] = 161.9\ \text{nm}^2
+\end{equation}
+
+\section{Material Properties}
+
+\subsection{Hafnium Zirconium Oxide (HZO)}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Film thickness & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+Film uniformity & $\pm$1\% within wafer \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Core Properties}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Core radius & 2.31 nm \\
+Core conductivity & $7.79 \times 10^3$ S/m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Electrode Materials}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Electrode} & \textbf{Material} & \textbf{Thickness} \\
+\midrule
+Bottom & TiN & 50 nm \\
+Top & TiN & 50 nm \\
+Pillar & TiN & 1.96 nm \\
+Etch stop & Al$_2$O$_3$ & 2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cell Electrical Characteristics}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resistance ($n=1$) & 11,762 $\Omega$ \\
+Resistance ($n=0$) & $>10^{12}$ $\Omega$ \\
+ON/OFF ratio & $>10^9$ \\
+Capacitance & 23.38 aF \\
+Settling time & 0.275 ps \\
+Read voltage & 9.886 mV \\
+Read current ($n=1$) & 840.5 nA \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Fabrication Flow}
+%=====================================================================
+
+\section{Overview}
+
+The fabrication flow has 18 steps and uses 10 masks. The flow uses standard 28 nm CMOS front-end processing with HZO atomic layer deposition for the ferroelectric layer.
+
+\section{Step-by-Step Process Flow}
+
+\subsection{Step 1: Substrate Preparation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer size & 300 mm \\
+Substrate & Silicon (100) \\
+Thermal SiO$_2$ & 100 nm $\pm$ 2 nm \\
+Cleaning & RCA clean before oxide \\
+Surface preparation & HF dip, DI rinse, N$_2$ dry \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 2: FinFET Fabrication}
+
+Standard 28 nm CMOS front-end.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Gate length & 28 nm \\
+Fins & 3-fin \\
+Gate oxide & High-$\kappa$ (HfO$_2$, EOT 3 nm) \\
+Source/drain & CoSi$_2$ \\
+Threshold voltage & 0.3 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 3: Bottom Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm $\pm$ 1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+Precursors & TiCl$_4$ + NH$_3$ \\
+Growth rate & 0.05 nm/cycle \\
+Cycles & 1000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 4: Etch Stop Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Al$_2$O$_3$ \\
+Thickness & 2 nm $\pm$ 0.2 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+Precursors & Al(CH$_3$)$_3$ + H$_2$O \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 5: Pillar Layer Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 1.96 nm $\pm$ 0.1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 6: Pillar Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Diameter & 20 nm \\
+Method & Immersion lithography (193 nm) \\
+Alignment tolerance & $\pm$2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 7: Pillar Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Chemistry & Cl$_2$/Ar \\
+Method & RIE \\
+Etch rate & $\sim$1 nm/s \\
+Etch stop & Al$_2$O$_3$ layer \\
+Overetch & 10\% \\
+Selectivity to Al$_2$O$_3$ & $>$10:1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 8: Etch Stop Removal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Etchant & Dilute HF (0.1\%) \\
+Al$_2$O$_3$ etch rate & 0.5 nm/s \\
+TiN etch rate & $<$0.01 nm/s \\
+Etch time & 4 s (removes 2 nm, 2$\times$ overetch) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+After this step, the Al$_2$O$_3$ remains only under the TiN pillar.
+
+\subsection{Step 8b: Post-Etch Cleaning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{5cm}}
+\toprule
+\textbf{Step} & \textbf{Description} \\
+\midrule
+Rinse & Deionized water, 30 s \\
+Dry & N$_2$ blow dry, 30 s \\
+Plasma clean & Ar plasma, 30 s at 50 W \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 9: HZO Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Thickness & 14.83 nm \\
+Method & ALD \\
+Temperature & 250$^\circ$C \\
+Supercycles & 82 \\
+Deposition time & 17 min \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Process note:} The film must be annealed within 1 hour of deposition to prevent moisture absorption.
+
+\subsection{Step 10: RTA Annealing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Method & Rapid Thermal Annealing \\
+Temperature & 450$^\circ$C \\
+Duration & 20 s \\
+Atmosphere & N$_2$ \\
+Ramp rate & 50$^\circ$C/s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 11: Top Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm $\pm$ 1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 12: Top Electrode Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pattern & Circle \\
+Diameter & 40 nm \\
+Alignment & Centered on pillar \\
+Tolerance & $\pm$2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 13: Disk Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Stack & TiN (50 nm) + HZO (14.83 nm) + TiN (50 nm) \\
+Chemistry (TiN) & Cl$_2$/Ar \\
+Chemistry (HZO) & BCl$_3$/Ar \\
+Etch stop & SiO$_2$ buried oxide \\
+Selectivity to SiO$_2$ & $>$3:1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Multi-step etch:
+
+\begin{enumerate}
+    \item TiN etch (50 nm): Cl$_2$/Ar, 50 s.
+    \item HZO etch (14.83 nm): BCl$_3$/Ar, 15 s.
+    \item TiN etch (50 nm): Cl$_2$/Ar, 50 s.
+\end{enumerate}
+
+Endpoint detection: optical emission spectroscopy. Ti line at 363.5 nm, Hf line at 313.5 nm.
+
+\subsection{Step 14: Post-Etch Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & O$_2$ \\
+Purpose & Repair sidewall damage \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 15: Passivation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & SiN (50 nm) + SiO$_2$ (50 nm) \\
+Method & PECVD \\
+Temperature & 350$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 16: Contact Via Formation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Via diameter & 50 nm \\
+Fill material & Tungsten (CVD) \\
+Resistivity & $5.6 \times 10^{-8}$ $\Omega\cdot$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 17: Cu Interconnect}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Thickness & 1000 nm \\
+Barrier & Ta/TaN (10 nm) \\
+Seed & Cu (50 nm PVD) \\
+Fill & Cu electroplating \\
+CMP & After fill \\
+Sheet resistance & 0.017 $\Omega/\square$ (for 1000 nm Cu) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Increasing the metal thickness reduces the sheet resistance proportionally and lowers the RC delay of the interconnect.
+
+\subsection{Step 18: Final Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & Forming gas (5\% H$_2$ in N$_2$) \\
+Purpose & Contact sintering, interface passivation \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Mask Set}
+
+\begin{center}
+\begin{longtable}{p{2cm}p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} & \textbf{Type} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} & \textbf{Type} \\
+\midrule
+\endhead
+M1 & FinFET gate & 28 nm & Dark field \\
+M2 & Bottom electrode & 100 nm & Dark field \\
+M3 & Pillar pattern & 20 nm & Dark field \\
+M4 & Top electrode & 40 nm & Dark field \\
+M5 & Disk pattern & 40 nm & Clear field \\
+M6 & Contact vias & 50 nm & Dark field \\
+M7 & Cu interconnect & 1000 nm & Dark field \\
+M8 & Bond pad opening & 50 $\mu$m & Clear field \\
+M9 & Passivation via & 50 nm & Dark field \\
+M10 & Scribe line test structures & --- & --- \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Total masks: 10.
+
+\section{Thermal Budget}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Temperature} & \textbf{Limit} \\
+\midrule
+FinFET & $\sim$1000$^\circ$C & CoSi$_2$ stable to 700$^\circ$C \\
+CoSi$_2$ formation & $\sim$450$^\circ$C & \\
+Bottom electrode & 300$^\circ$C & TiN stable to 700$^\circ$C \\
+RTA anneal & 450$^\circ$C & HZO phase 400--600$^\circ$C \\
+Post-etch anneal & 400$^\circ$C & \\
+Final anneal & 400$^\circ$C & Cu stable to 400$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All temperatures are within limits.
+
+\section{Yield Analysis}
+
+\subsection{Defect Density}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Defect Type} & \textbf{Density} \\
+\midrule
+HZO pinholes & $<$0.1 cm$^{-2}$ \\
+TiN pillar defects & $<$0.01 cm$^{-2}$ \\
+Disk etch defects & $<$0.1 cm$^{-2}$ \\
+Passivation defects & $<$1 cm$^{-2}$ \\
+Particle contamination & $<$1 cm$^{-2}$ \\
+\midrule
+\textbf{Total (mature)} & \textbf{0.5 cm$^{-2}$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Yield by Die Size}
+
+For a 100 mm$^2$ die:
+
+\begin{equation}
+Y = e^{-0.5 \times 1.0} = 60.7\%
+\end{equation}
+
+Good dies per 300 mm wafer: 615 total, 373 good.
+
+\section{Cost Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer cost & \$2,000 \\
+Good dies per wafer & 373 \\
+Die cost & \$5.36 \\
+Package cost & \$1.50 \\
+Test cost & \$0.50 \\
+Total chip cost & \$7.36 \\
+Capacity (100 mm$^2$) & 1.95 GB \\
+Cost per GB & \$2.75 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Circuit Design}
+%=====================================================================
+
+\section{Comparator}
+
+\subsection{Circuit Description}
+
+The comparator discriminates between the two resistance states by comparing the cell current to a reference current.
+
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+\textbf{Comparator Topology} \\
+\hline
+Input current $\to$ Current mirror $\to$ Integration node $\to$ Latch $\to$ Output \\
+\hline
+\end{tabular}
+\end{center}
+
+The current-mirror input stage converts the input current to a voltage on the integration node. The regenerative latch then amplifies the voltage difference to a full-swing digital output.
+
+\subsection{Auto-Zeroing}
+
+The comparator offset is cancelled by auto-zeroing:
+
+\begin{enumerate}
+    \item Phase 1: Input shorted, measure offset, store on capacitor.
+    \item Phase 2: Input connected, measure signal, subtract offset.
+\end{enumerate}
+
+Auto-zeroing adds approximately 1 ns to the read time but eliminates offset errors. It is scheduled during idle cycles and does not impact the read latency.
+
+\subsection{Specification}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Current-mode comparator \\
+Topology & Double-tail latch with pre-amplification \\
+Decision time & 199.5 ps \\
+Supply voltage & 1.0 V \\
+Power per comparator & 0.840 $\mu$W \\
+Offset (after auto-zero) & $<$10 $\mu$V \\
+Number & 1024 per bank \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Word Line Driver}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & CMOS buffer \\
+Output voltage & 0--1 V \\
+Rise time & 100 ps \\
+Drive capability & 299 $\mu$A \\
+Power & 50 $\mu$W per driver \\
+Number & 1024 per bank \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Write Driver}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Topology & H-bridge \\
+Voltage range & $-3.2$ V to $+3.2$ V \\
+Rise time & 300 ps \\
+Fall time & 300 ps \\
+Current capability & 10 $\mu$A \\
+Transistor type & 5 V I/O \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Charge Pump}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Topology & Dickson 4-stage \\
+Input & $+1$ V \\
+Output & $-3.2$ V \\
+Efficiency & 80\% \\
+Power & 302 $\mu$W \\
+Area & $50 \times 100\ \mu$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Voltage Reference}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Bandgap reference \\
+Accuracy & $\pm$1\% \\
+Temperature coefficient & $<$50 ppm/$^\circ$C \\
+Power & 100 $\mu$W \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{ECC}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Code type & SEC (Hamming) \\
+Data word & 64 bits \\
+Check bits & 7 bits \\
+Code rate & 0.90 \\
+Overhead & 11.1\% \\
+Correctable errors & 1 per 64 bits \\
+Power & 10 mW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The ECC encoding and decoding are pipelined and do not add to the read or write latency.
+
+\section{Bad Block Management}
+
+\begin{enumerate}
+    \item At test time, identify bad blocks.
+    \item Store bad block list in reserved area (block 0).
+    \item During operation, skip bad blocks.
+    \item Periodically scan for new bad blocks.
+\end{enumerate}
+
+Bad block table size: 10\% of total block count.
+
+\section{Wear Leveling}
+
+\begin{enumerate}
+    \item Controller maintains write count for each block.
+    \item New writes go to the least-used block.
+    \item Old blocks are marked for recycling.
+\end{enumerate}
+
+Write count storage: 32 bits per block. For 15,625 blocks, the write count table is 62.5 KB.
+
+\section{Power Management}
+
+\begin{center}
+\begin{tabular}{p{3cm}p{4cm}p{3cm}}
+\toprule
+\textbf{State} & \textbf{Description} & \textbf{Wake Time} \\
+\midrule
+P0 & Full operation & --- \\
+P1 & Reduced clock (50\%) & 10 ns \\
+P2 & Idle (clock gated) & 1 ns \\
+P3 & Sleep (power removed) & 10 ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Data is non-volatile. Power-off is instant. Power-on restores the device with no state loss.
+
+\section{Clock Generation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Reference & 100 MHz \\
+PLL & Charge-pump PLL \\
+Output frequency & 100 MHz to 1 GHz \\
+Jitter & $<$1 ps RMS \\
+Lock time & $<$10 $\mu$s \\
+Power & 10 mW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Temperature Sensor}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Bandgap-based \\
+Accuracy & $\pm$1$^\circ$C \\
+Resolution & 0.25$^\circ$C \\
+Power & 1 $\mu$W \\
+Number & 4 per die \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Complete Power Summary}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Power} \\
+\midrule
+Comparators & 0.860 mW \\
+Control & 20 mW \\
+I/O & 50 mW \\
+Clock & 10 mW \\
+ECC & 10 mW \\
+Charge pump & 0.302 mW \\
+Leakage & 6 mW \\
+\midrule
+\textbf{Total} & \textbf{97.2 mW} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Operating Principles}
+%=====================================================================
+
+\section{Write Operation}
+
+\subsection{Write Procedure}
+
+For each cell:
+
+\begin{enumerate}
+    \item Decode bank address (1 ns).
+    \item Decode row address (0.5 ns).
+    \item Activate word line (0.1 ns).
+    \item Apply write voltage attempt 1 (10 ns).
+    \item Verify (read back, 2 ns).
+    \item If failed, apply attempt 2 (10 ns).
+    \item Verify (2 ns).
+    \item If failed, apply attempt 3 (10 ns).
+    \item Verify (2 ns).
+    \item If failed, apply attempt 4 (10 ns).
+    \item Verify (2 ns).
+\end{enumerate}
+
+\subsection{Write-Verify Voltage Levels}
+
+\begin{center}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Attempt} & \textbf{Field} & \textbf{Voltage} & \textbf{Per-Level} & \textbf{Cumulative} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Attempt} & \textbf{Field} & \textbf{Voltage} & \textbf{Per-Level} & \textbf{Cumulative} \\
+\midrule
+\endhead
+1 & 1.5 MV/cm & 2.2245 V & 0.500 & 0.500 \\
+2 & 1.7 MV/cm & 2.5211 V & 0.375 & 0.875 \\
+3 & 1.9 MV/cm & 2.8177 V & 0.109 & 0.984 \\
+4 & 2.1 MV/cm & 3.1143 V & 0.0146 & 0.999 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+The remaining 0.1\% of cells that fail all four attempts are handled by ECC and bad block management.
+
+\subsection{Average Write Time}
+
+\begin{equation}
+t_{\rm avg} = 1.5 + 10 + 2 + 0.375 \times 12 + 0.109 \times 24 + 0.0146 \times 36 = 21.1\ \text{ns}
+\end{equation}
+
+\subsection{Write Energy}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Component} & \textbf{Energy per bit} \\
+\midrule
+Switching & 548.2 fJ \\
+Capacitive & 0.116 fJ \\
+Vortex & 0.523 fJ \\
+\midrule
+\textbf{Weighted total} & \textbf{595 fJ} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Read Operation}
+
+\subsection{Read Procedure}
+
+\begin{enumerate}
+    \item Decode bank address (1.0 ns).
+    \item Decode row address (0.5 ns).
+    \item Activate word line (0.1 ns).
+    \item Cell settling (0.275 ps).
+    \item Comparator decision (199.5 ps).
+    \item Data output (2.0 ns).
+\end{enumerate}
+
+\subsection{Read Latency Breakdown}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Time} \\
+\midrule
+Bank decode & 1.000 ns \\
+Row decode & 0.500 ns \\
+Word line & 0.100 ns \\
+Settling & 0.0003 ns \\
+Comparator & 0.1995 ns \\
+Data output & 2.000 ns \\
+\midrule
+\textbf{Total} & \textbf{3.80 ns} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Read Disturb Analysis}
+
+The read field is 0.00667 MV/cm at 85$^\circ$C. The coercive field at 85$^\circ$C is 1.18 MV/cm. The margin is 177$\times$. No read disturb occurs over the device lifetime.
+
+\section{Erase Operation}
+
+The erase operation writes $n=0$ to the cell. It uses the same write-verify procedure with the opposite polarity.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Erase voltage range & $-2.2245$ to $-3.1143$ V \\
+Erase energy & Same as write energy \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Temperature Compensation}
+
+The coercive field decreases with temperature:
+
+\begin{equation}
+E_c(T) = E_c(0) \times (1 - T/579\ \text{K})
+\end{equation}
+
+The write voltage is adjusted by approximately 19\% across the operating range.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Range & 0--85$^\circ$C \\
+Resolution & 1$^\circ$C \\
+Points & 86 \\
+Voltage rails & 4 \\
+Total entries & 688 \\
+Size & 688 bytes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Periodic Recalibration}
+
+Reference cells (1\% of the array) are programmed to known states during initial calibration.
+
+Recalibration procedure:
+
+\begin{enumerate}
+    \item Read all reference cells.
+    \item Compare to stored values.
+    \item Update comparator thresholds.
+    \item Update write voltage lookup table.
+\end{enumerate}
+
+Frequency: Hourly during normal operation. Time: 1 ms (background operation).
+
+\section{Power-On Sequence}
+
+\begin{enumerate}
+    \item Apply 1 V logic supply.
+    \item Wait for power-on reset (1 $\mu$s).
+    \item Apply write voltage supply (from charge pump).
+    \item Load calibration data from non-volatile memory.
+    \item Begin normal operation.
+\end{enumerate}
+
+Total boot time: $<$10 $\mu$s.
+
+\section{Power-Down Sequence}
+
+\begin{enumerate}
+    \item Complete pending operations.
+    \item Remove write voltage supply.
+    \item Remove logic supply.
+\end{enumerate}
+
+Data is non-volatile. Power-off is instant. No data loss.
+
+\section{Error Handling}
+
+\subsection{Correctable Errors}
+
+\begin{enumerate}
+    \item Correct the error using ECC.
+    \item Log the event.
+    \item Continue operation.
+\end{enumerate}
+
+\subsection{Uncorrectable Errors}
+
+\begin{enumerate}
+    \item Retry the operation.
+    \item If retry fails, mark block as bad.
+    \item Use a spare block.
+    \item If no spares remain, report to host.
+\end{enumerate}
+
+\section{Wake-Up Procedure}
+
+Production test performs the wake-up:
+
+\begin{enumerate}
+    \item Apply $10^4$ write cycles to all cells.
+    \item Measure resistance after wake-up.
+    \item Store calibration values.
+    \item Begin normal operation.
+\end{enumerate}
+
+Wake-up time: $10^4 \times 21.1\ \text{ns} = 211\ \mu\text{s}$.
+
+%=====================================================================
+\part{Performance Specifications}
+%=====================================================================
+
+\section{Summary of Baseline Performance}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Density & 1.95 GB/cm$^2$ \\
+Capacity (100 mm$^2$ die) & 1.95 GB \\
+Read latency & 3.80 ns \\
+Write latency (average) & 21.1 ns \\
+Write energy & 595 fJ per bit \\
+Endurance & $2.74 \times 10^{10}$ cycles \\
+Retention at 85$^\circ$C & $>$10 years \\
+Power (100 mm$^2$ die) & 97.2 mW \\
+Die cost & \$5.36 \\
+Chip cost & \$7.36 \\
+Cost per GB & \$2.75 \\
+Operating temperature & 0--85$^\circ$C \\
+Supply voltage & 1.0 V logic, $-3.2$ V write/erase \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Comparison with Existing Technology}
+
+\subsection{Comparison with DRAM}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{DRAM} & \textbf{This Device} \\
+\midrule
+Density & 0.125 GB/cm$^2$ & 1.95 GB/cm$^2$ \\
+Read latency & 50 ns & 3.80 ns \\
+Write energy & 10 pJ & 595 fJ \\
+Write latency & 50 ns & 21.1 ns \\
+Endurance & $10^{16}$ cycles & $2.74 \times 10^{10}$ cycles \\
+Non-volatile & No & Yes \\
+Power (100 mm$^2$) & 3--5 W & 97.2 mW \\
+Cost per GB & \$5--10 & \$2.75 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Comparison with NAND Flash}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{NAND} & \textbf{This Device} \\
+\midrule
+Density & 0.375 GB/cm$^2$ & 1.95 GB/cm$^2$ \\
+Read latency & 50 $\mu$s & 3.80 ns \\
+Write energy & 1 nJ & 595 fJ \\
+Write latency & 100 $\mu$s & 21.1 ns \\
+Endurance & $10^4$--$10^5$ cycles & $2.74 \times 10^{10}$ cycles \\
+Non-volatile & Yes & Yes \\
+Cost per GB & \$0.50--1 & \$2.75 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Honest Assessment}
+
+\subsection{Strengths}
+
+\begin{itemize}
+    \item 15.6$\times$ denser than DRAM.
+    \item 13,158$\times$ faster read than NAND flash.
+    \item 16.8$\times$ lower write energy than DRAM.
+    \item 31--51$\times$ lower power than DRAM.
+    \item Non-volatile with 10+ year retention.
+    \item CMOS compatible with standard HZO ALD.
+    \item No exotic materials.
+\end{itemize}
+
+\subsection{Weaknesses}
+
+\begin{itemize}
+    \item Endurance is lower than DRAM. Wear leveling is required for write-intensive applications.
+    \item Write-verify procedure adds latency to writes.
+    \item Baseline cost per GB is higher than NAND flash.
+\end{itemize}
+
+%=====================================================================
+\part{Verification and Qualification}
+%=====================================================================
+
+\section{Overview}
+
+The verification plan is designed to catch problems at the earliest possible stage, minimizing wasted effort and fabrication runs.
+
+The plan follows the three-gate structure:
+
+\begin{enumerate}
+    \item \textbf{Gate 1:} The ferroelectric phase is confirmed immediately after annealing.
+    \item \textbf{Gate 2:} The vortex cell switches correctly at the single-cell level.
+    \item \textbf{Gate 3:} The device works at scale in an array.
+\end{enumerate}
+
+\section{Gate 1: Ferroelectric Phase Confirmation}
+
+\subsection{When to Measure}
+
+After Step 10 (RTA Annealing), before any further patterning.
+
+\subsection{What to Measure}
+
+A P-V hysteresis loop on a simple TiN/HZO/TiN capacitor.
+
+\subsection{Test Structure}
+
+A 50 $\mu$m $\times$ 50 $\mu$m capacitor fabricated on the same wafer, in the scribe line or a dedicated test area.
+
+\subsection{Equipment}
+
+Radiant Precision LC ferroelectric tester, or equivalent.
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Contact the top and bottom electrodes with probe tips.
+    \item Apply a voltage sweep from $-5$ V to $+5$ V and back.
+    \item Measure the polarization as a function of voltage.
+    \item Plot the P-V loop.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Hysteresis loop & Open loop & Clearly visible \\
+Remanent polarization & $>$10 $\mu$C/cm$^2$ & Measured above threshold \\
+Coercive field & 1--2 MV/cm & Within range \\
+Film thickness & 14.83 nm $\pm$ 1\% & Ellipsometry \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{What Passing Gate 1 Tells You}
+
+The ferroelectric has crystallized in the orthorhombic phase. The material foundation is solid. The annealing conditions are correct. The ALD deposition worked.
+
+\subsection{If Gate 1 Fails}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Symptom} & \textbf{Likely Cause} & \textbf{Fix} \\
+\midrule
+No hysteresis & Not crystallized & Increase anneal to 500$^\circ$C \\
+Low $P_s$ & Low phase fraction & Increase anneal time, check wake-up \\
+Wrong coercive field & Wrong film thickness & Check ALD cycle count \\
+Leaky capacitor & Pinholes & Check contamination, ALD QC \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 2: Single Cell Verification}
+
+\subsection{When to Measure}
+
+After Step 13 (Disk Etch) and Step 14 (Post-Etch Anneal), after the top electrode is patterned.
+
+\subsection{What to Measure}
+
+Write/read operation on a single isolated cell.
+
+\subsection{Test Structure}
+
+A single cell with the full stack: TiN bottom, TiN pillar, HZO, TiN top. Isolated from other cells.
+
+\subsection{Equipment}
+
+Semiconductor parameter analyzer (Keysight B1500A or equivalent), probe station with micromanipulators.
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Probe the top electrode and the bottom electrode.
+    \item Apply the write voltage (2.2245 V) for 10 ns (write $n=1$).
+    \item Apply the read voltage (9.886 mV) and measure the current.
+    \item Apply the erase voltage ($-2.2245$ V) for 10 ns (write $n=0$).
+    \item Apply the read voltage and measure the current.
+    \item Repeat 10 times to verify reproducibility.
+\end{enumerate}
+
+\subsection{Expected Results}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+$n=1$ read current & 840.5 nA \\
+$n=0$ read current & $<$1 pA \\
+ON/OFF ratio & $>10^9$ \\
+Reproducibility & 10/10 cycles \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+$n=1$ read current & Within 50\% of expected & Measured in range \\
+$n=0$ read current & $<$1 pA & Below threshold \\
+ON/OFF ratio & $>10^9$ & Measured above threshold \\
+Reproducibility & 10/10 cycles & All succeed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{If Gate 2 Fails}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Symptom} & \textbf{Likely Cause} & \textbf{Fix} \\
+\midrule
+$n=1$ current too low & Resistance too high & Check pillar diameter, film thickness \\
+$n=0$ current too high & Leakage path & Check disk etch completeness \\
+No switching & No vortex & Check pillar height, annular width \\
+Inconsistent switching & Alignment error & Check pillar-to-disk alignment \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 3: Small Array Verification}
+
+\subsection{When to Measure}
+
+After full fabrication (Step 18), before dicing and packaging.
+
+\subsection{What to Measure}
+
+Array-level yield and variation on a 64$\times$64 test array.
+
+\subsection{Test Structure}
+
+A 64$\times$64 array (4,096 cells) with full addressing and readout.
+
+\subsection{Equipment}
+
+Automated wafer prober with test program.
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Write all 4,096 cells to $n=1$.
+    \item Read all cells and measure current.
+    \item Write all cells to $n=0$.
+    \item Read all cells and measure current.
+    \item Calculate yield and cell-to-cell variation.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Array yield & $>$80\% & Measured above threshold \\
+Cell variation & $<$20\% (1$\sigma$) & Measured below threshold \\
+Write/read success & 100\% & No systematic failures \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{If Gate 3 Fails}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Symptom} & \textbf{Likely Cause} & \textbf{Fix} \\
+\midrule
+Low yield & Random defects & Cleanroom, process cleanliness \\
+High variation & ALD non-uniformity & Check ALD tool, recipe \\
+Systematic failure & Design error & Review layout, DRC \\
+Edge failures & Etch non-uniformity & Check etch recipe, overetch \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Additional Intermediate Tests}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Measurement} & \textbf{Target} & \textbf{Method} \\
+\midrule
+After HZO dep & Film thickness & $\pm$1\% & Ellipsometry \\
+After HZO dep & Composition & Hf:Zr 50:50 $\pm$2\% & XPS \\
+After anneal & Phase fraction & 50--70\% orthorhombic & GI-XRD \\
+After pillar etch & Pillar diameter & $\pm$10\% & SEM \\
+After disk etch & Disk diameter & $\pm$5\% & SEM \\
+After disk etch & Edge roughness & $<$1 nm RMS & AFM \\
+After passivation & Stress & $<$200 MPa & Wafer bow \\
+After metallization & Continuity & 100\% & Electrical test \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Reliability Testing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Test} & \textbf{Specification} \\
+\midrule
+HTOL & 1000h at 125$^\circ$C \\
+HTSL & 1000h at 150$^\circ$C \\
+Temperature cycling & 500 cycles, $-40$ to $125^\circ$C \\
+HAST & 96h at 130$^\circ$C/85\% RH \\
+ESD & HBM 2 kV, CDM 500 V \\
+Latchup & 100 mA, 85$^\circ$C \\
+Endurance & $10^9$ cycles at 85$^\circ$C \\
+Retention & 1000h at 85$^\circ$C \\
+Read disturb & $10^9$ reads at 9.886 mV \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Burn-In}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 125$^\circ$C \\
+Voltage & 1.1$\times$ nominal \\
+Duration & 48 hours \\
+Pattern & Memory exerciser \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Failure Modes and Mitigations}
+%=====================================================================
+
+\section{Material Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+HZO not ferroelectric & Wrong anneal temperature & HIGH & Increase anneal to 500$^\circ$C \\
+HZO phase degradation & Grain growth at high temperature & MEDIUM & Control RTA profile \\
+Pinholes in HZO & Contamination during ALD & HIGH & Cleanroom, ALD QC \\
+Hf:Zr ratio off & ALD cycle error & HIGH & XPS verification \\
+Film too thick & ALD cycle count error & HIGH & Ellipsometry verification \\
+Film too thin & ALD cycle count error & HIGH & Ellipsometry verification \\
+Moisture absorption & Delay before anneal & HIGH & Anneal within 1 hour \\
+Oxygen vacancy imbalance & Wrong anneal atmosphere & MEDIUM & N$_2$ anneal \\
+Film thickness variation & ALD non-uniformity & MEDIUM & Ellipsometry at 9 sites \\
+Interface contamination & Poor cleaning & MEDIUM & RCA clean \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Device Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Pillar over-etch & No etch stop & HIGH & Al$_2$O$_3$ etch stop layer \\
+Pillar under-etch & Insufficient etch time & MEDIUM & 10\% overetch \\
+Disk over-etch & Poor selectivity to SiO$_2$ & HIGH & Multi-step etch with endpoint detection \\
+Disk under-etch & Insufficient etch time & MEDIUM & 10\% overetch \\
+Alignment error & Lithography drift & MEDIUM & $\pm$2 nm overlay tolerance \\
+Edge roughness & Etch non-uniformity & MEDIUM & $<$1 nm RMS specification \\
+Vortex not forming & Annular width too small & HIGH & Verify annular width is at least 1.5$\times$ the vortex core diameter \\
+Vortex drifting & Pinning energy too low & MEDIUM & Verify pillar dimensions \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Circuit Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Comparator offset & Transistor mismatch & MEDIUM & Auto-zeroing \\
+Write driver failure & Voltage wrong & HIGH & Verify write-verify levels \\
+Charge pump failure & Insufficient output & HIGH & Overdesign, verification \\
+ECC failure & Logic error & HIGH & ECC verification \\
+Clock jitter & PLL noise & LOW & $<$1 ps RMS specification \\
+Power noise & Decoupling insufficient & MEDIUM & On-chip decoupling \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{System Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Cell fatigue & Endurance exceeded & MEDIUM & Wear leveling \\
+Weight drift & Retention failure & MEDIUM & Periodic recalibration \\
+Thermal runaway & Cooling failure & HIGH & Thermal shutdown \\
+Read disturb & Read voltage too high & HIGH & Verify read field $<$ coercive field \\
+Package warpage & Stress imbalance & MEDIUM & Stress compensation \\
+ESD damage & Electrostatic discharge & MEDIUM & ESD protection circuits \\
+Latchup & Parasitic SCR & MEDIUM & Guard rings, well taps \\
+Radiation effects & Alpha particles, cosmic rays & LOW & ECC, parity \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Packaging}
+%=====================================================================
+
+\section{Package Specification}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Package type & BGA \\
+Ball count & 324 \\
+Ball pitch & 0.8 mm \\
+Package size & 19 mm $\times$ 19 mm \\
+Package height & 1.2 mm \\
+Thermal resistance & 15$^\circ$C/W \\
+Die attach & Epoxy, 25 $\mu$m \\
+Wire type & Gold, 25 $\mu$m \\
+Bond pad pitch & 100 $\mu$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Thermal Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+Power & 97.2 mW & 100 mm$^2$ die \\
+Thermal resistance & 15$^\circ$C/W & Package \\
+Temperature rise & 1.5$^\circ$C & Above ambient \\
+Junction temperature & 26.5$^\circ$C & At 25$^\circ$C ambient \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All operating temperatures remain well within the 0--85$^\circ$C range. No active cooling is required.
+
+%=====================================================================
+\part{Advanced Optimization Available}
+%=====================================================================
+
+\begin{tcolorbox}[title=\textbf{ADVANCED OPTIMIZATION AVAILABLE}, colback=green!5, colframe=green!70!70, width=\textwidth]
+
+The design specified in this document is the baseline implementation of the ferroelectric vortex memory.
+
+\textbf{Further optimization is possible.}
+
+The advanced optimization provides:
+
+\begin{itemize}
+    \item \textbf{Density:} 13.9 GB/cm$^2$ (7.13$\times$ the baseline)
+    \item \textbf{Read latency:} 4.02 ns
+    \item \textbf{Write energy:} 0.787 fJ per bit (755$\times$ lower than the baseline)
+    \item \textbf{Power:} 96.9 mW on a 100 mm$^2$ die
+    \item \textbf{Cost per GB:} \$0.405 (6.8$\times$ lower than the baseline)
+\end{itemize}
+
+The complete specifications for the advanced optimization are available from the author.
+
+\textbf{Contact:} \href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+
+The advanced optimization is not included in this document.
+\end{tcolorbox}
+
+%=====================================================================
+\appendix
+%=====================================================================
+
+\part{Appendix A: Complete Numerical Tables}
+
+\section{Fundamental Engineering Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Cell size & 80 nm $\times$ 80 nm \\
+Disk diameter & 40 nm \\
+Pillar diameter & 20 nm \\
+Pillar height & 1.96 nm \\
+Film thickness & 14.83 nm \\
+Annular width & 10 nm \\
+Vortex core radius & 2.31 nm \\
+Resistance ($n=1$) & 11,762 $\Omega$ \\
+Capacitance & 23.38 aF \\
+Read voltage & 9.886 mV \\
+Read current & 840.5 nA \\
+Write voltage (attempt 1) & 2.2245 V \\
+Write voltage (attempt 4) & 3.1143 V \\
+Erase voltage (attempt 1) & $-2.2245$ V \\
+Density & 1.95 GB/cm$^2$ \\
+Capacity (100 mm$^2$) & 1.95 GB \\
+Read latency & 3.80 ns \\
+Write latency (average) & 21.1 ns \\
+Write energy & 595 fJ \\
+Endurance & $2.74 \times 10^{10}$ cycles \\
+Retention at 85$^\circ$C & $>$10 years \\
+Power (100 mm$^2$) & 97.2 mW \\
+Die cost & \$5.36 \\
+Chip cost & \$7.36 \\
+Cost per GB & \$2.75 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Cell Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Layer stack (bottom to top) & TiN / Al$_2$O$_3$ / TiN pillar / HZO / TiN \\
+Bottom electrode thickness & 50 nm \\
+Etch stop thickness & 2 nm \\
+Pillar thickness & 1.96 nm \\
+Ferroelectric thickness & 14.83 nm \\
+Top electrode thickness & 50 nm \\
+Cell size & 80 nm $\times$ 80 nm \\
+Disk diameter & 40 nm \\
+Pillar diameter & 20 nm \\
+Annular width & 10 nm \\
+Select transistor & 3-fin FinFET, 28 nm gate \\
+On-current & 299 $\mu$A \\
+Threshold voltage & 0.3 V \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Material Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Ferroelectric composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Ferroelectric thickness & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+Bottom electrode & TiN, 50 nm \\
+Top electrode & TiN, 50 nm \\
+Pillar & TiN, 1.96 nm \\
+Etch stop & Al$_2$O$_3$, 2 nm \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Process Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+HZO ALD temperature & 250$^\circ$C \\
+HZO supercycles & 82 \\
+HZO deposition time & 17 min \\
+RTA temperature & 450$^\circ$C \\
+RTA duration & 20 s \\
+RTA atmosphere & N$_2$ \\
+Post-etch anneal temperature & 400$^\circ$C \\
+Post-etch anneal duration & 30 min \\
+Final anneal temperature & 400$^\circ$C \\
+Final anneal duration & 30 min \\
+Cu sheet resistance (1000 nm) & 0.017 $\Omega/\square$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Circuit Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Comparator decision time & 199.5 ps \\
+Comparator power & 0.840 $\mu$W \\
+Word line driver power & 50 $\mu$W \\
+Write driver voltage range & $\pm$3.2 V \\
+Write driver transistor type & 5 V I/O \\
+Charge pump output & $-3.2$ V \\
+Charge pump efficiency & 80\% \\
+Charge pump power & 302 $\mu$W \\
+ECC code type & Hamming SEC \\
+ECC data word & 64 bits \\
+ECC code rate & 0.90 \\
+PLL output frequency & 100 MHz to 1 GHz \\
+PLL jitter & $<$1 ps RMS \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Fabrication Summary}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{3cm}p{3cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} & \textbf{Status} \\
+\midrule
+\endhead
+Steps & 18 & Standard HZO process & Standard \\
+Masks & 10 & & Standard \\
+HZO thickness & 14.83 nm & $\pm$1\% & Specified \\
+Pillar diameter & 20 nm & $\pm$10\% & Specified \\
+Cell size & 80 nm & $\pm$5\% & Specified \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix B: Glossary}
+%=====================================================================
+
+\begin{center}
+\begin{longtable}{p{4cm}p{10cm}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endhead
+Ferroelectric vortex & A topological defect in a ferroelectric nanodisk where the polarization rotates around a central point \\
+Pinning pillar & Central TiN structure that holds the vortex in place \\
+Winding number & Number of times polarization rotates around the pillar \\
+Vortex core radius & Radius of the vortex core region where polarization is suppressed \\
+Annular width & Distance from pillar to disk edge \\
+Annular area & Conductive area of the vortex core annulus \\
+Coercive field & Electric field required to switch polarization \\
+Remanent polarization & Polarization remaining after field removal \\
+HZO & Hafnium zirconium oxide, Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+ALD & Atomic layer deposition \\
+RIE & Reactive ion etching \\
+RTA & Rapid thermal annealing \\
+ECC & Error correction code \\
+BGA & Ball grid array \\
+HTOL & High temperature operating life test \\
+HTSL & High temperature storage life test \\
+HAST & Highly accelerated stress test \\
+ESD & Electrostatic discharge \\
+HBM & Human body model (ESD test) \\
+CDM & Charged device model (ESD test) \\
+Write-verify & Multi-voltage write procedure that maximizes endurance \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix C: Licensing}
+%=====================================================================
+
+\section{Document License}
+
+This document is released under the \textbf{Creative Commons Attribution 4.0 International (CC BY 4.0)} license.
+
+\section{Technology License}
+
+The technology described in this document is released as a \textbf{public, patent-free engineering specification}.
+
+No patent is sought. No license is required to manufacture, sell, or use devices implementing the design described in this document.
+
+\section{Repository Access}
+
+Complete specifications, updates, and supporting materials are available at:
+
+\begin{itemize}
+    \item \textbf{Main Repository (Mega):} \href{https://mega.nz/folder/v35nVLAB\#NbS00c8CL8ONTEHyMPe-Fg}{Mega}
+    \item \textbf{Proton Drive:} \href{https://drive.proton.me/urls/CMHBZEQKVG\#ScNAG2APdoH2}{Proton Drive}
+    \item \textbf{Zenodo:} \href{https://zenodo.org/search?q=metadata.creators.person\_or\_org.name\%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo}
+    \item \textbf{GitHub:} \href{https://github.com/MartinVHristov}{GitHub}
+    \item \textbf{OSF:} \href{https://osf.io/user/9ps8x}{OSF}
+    \item \textbf{Academia.edu:} \href{https://independent.academia.edu/MartinHristov37}{Academia.edu}
+    \item \textbf{X (Twitter):} \href{https://x.com/MHristov37}{X}
+\end{itemize}
+
+\section{Contact}
+
+\begin{center}
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+\end{center}
+
+\end{document}

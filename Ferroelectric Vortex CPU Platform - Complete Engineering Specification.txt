@@ -1,0 +1,1929 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{cleveref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{longtable}
+
+\sisetup{detect-all=true}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdftitle={Ferroelectric Vortex CPU Platform: Complete Engineering Specification},
+    pdfauthor={Martin Hristov},
+    pdfsubject={Processor, Ferroelectric, CPU, Engineering Spec},
+    pdfkeywords={ferroelectric, CPU, processor, vector co-processor, engineering spec}
+}
+
+\title{\textbf{Ferroelectric Vortex CPU Platform}\\
+\large Complete Engineering Specification}
+\author{Martin Hristov}
+\date{11 September 2026}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \bfseries Ferroelectric Vortex CPU Platform}\\[0.3cm]
+{\Large \bfseries Complete Engineering Specification}\\[2cm]
+
+{\large Martin Hristov}\\[0.5cm]
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}\\[2cm]
+\texttt{11 September 2026}\\[2cm]
+
+\begin{center}
+\textbf{Document Type:} Engineering Design --- Core Specification\\
+\textbf{Document License:} CC BY 4.0\\
+\textbf{6DUFT Framework License:} CC BY 4.0\\
+\textbf{Technology Patent Status:} \textcolor{red}{\textbf{PUBLIC RELEASE --- NO PATENT SOUGHT}}\\
+\textbf{Advanced Optimization:} \textit{Available later in this document}\\
+\textbf{Repository:}
+\href{https://mega.nz/folder/v35nVLAB#NbS00c8CL8ONTEHyMPe-Fg}{Mega} \,|\,
+\href{https://drive.proton.me/urls/CMHBZEQKVG#ScNAG2APdoH2}{Proton Drive} \,|\,
+\href{https://zenodo.org/search?q=metadata.creators.person_or_org.name%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo} \,|\,
+\href{https://github.com/MartinVHristov}{GitHub} \,|\,
+\href{https://osf.io/user/9ps8x}{OSF} \,|\,
+\href{https://independent.academia.edu/MartinHristov37}{Academia} \,|\,
+\href{https://x.com/MHristov37}{X}
+\end{center}
+
+\vfill
+{\small This document provides the complete engineering specification for a general-purpose processor platform built on ferroelectric vortex memory cells. The platform consists of two dies in a single package: a Main Processor with a stored-function ALU array and pipeline, and a Vector Co-Processor with a 1024$\times$1024 crossbar and integrated non-volatile memory. All cell geometries, material compositions, fabrication steps, circuit designs, operating procedures, qualification tests, and acceptance criteria are provided explicitly. Every parameter required to build, test, and operate the baseline platform is included. The design is released as a public, patent-free engineering specification. An advanced optimization configuration is offered separately and is described at the end of this document.}
+
+\vspace{1cm}
+
+\begin{center}
+\textbf{This is a 6DUFT inspired technology.}
+\end{center}
+
+\end{titlepage}
+
+\newpage
+\begin{abstract}
+This document is the complete engineering specification for a general-purpose processor platform built on ferroelectric vortex memory cells.
+
+The platform consists of two dies in a single package:
+
+\begin{enumerate}
+    \item \textbf{Main Processor:} A scalar processor with a stored-function ALU array, a pipeline, a cache hierarchy, and a register file.
+    \item \textbf{Vector Co-Processor:} A 1024$\times$1024 crossbar for matrix-vector multiplication, with 0.109 GB of integrated non-volatile memory.
+\end{enumerate}
+
+The baseline platform provides:
+
+\begin{itemize}
+    \item \textbf{Clock:} 8.10 GHz
+    \item \textbf{Effective IPC:} 2.614
+    \item \textbf{Single-thread throughput:} 21.2 GIPS
+    \item \textbf{Vector throughput:} $1.02 \times 10^{14}$ MAC/s (1-bit workloads)
+    \item \textbf{Power:} 0.90 W (Main: 221 mW, Vector Co-Processor: 680 mW)
+    \item \textbf{Efficiency:} 23.6 GIPS/W
+    \item \textbf{Cost:} \$7.24
+\end{itemize}
+
+The platform uses standard 28 nm CMOS with hafnium zirconium oxide (Hf$_{0.5}$Zr$_{0.5}$O$_2$, HZO) atomic layer deposition. No exotic materials are required.
+
+The document covers architecture, cell geometry and materials, fabrication flows for both dies, circuit design, operating principles, performance specifications, verification and qualification, failure modes and mitigations, packaging, and an advanced optimization configuration available separately.
+
+The design is released openly. No patent is sought.
+
+\textbf{This is a 6DUFT inspired technology.}
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+%=====================================================================
+\part{Introduction and Overview}
+%=====================================================================
+
+\section{Purpose and Scope}
+
+This document is the complete engineering specification for a general-purpose processor platform built on ferroelectric vortex memory cells.
+
+It provides every parameter, process step, circuit specification, and procedure required to build, test, and operate the baseline platform.
+
+The document is written for:
+
+\begin{itemize}
+    \item Foundry process engineers who will fabricate the two dies.
+    \item Circuit designers who will integrate the platform.
+    \item Test engineers who will qualify the platform.
+    \item System engineers who will deploy the platform.
+\end{itemize}
+
+No prior knowledge of any theoretical framework is required. All necessary engineering information is contained in this document.
+
+\section{Platform Overview}
+
+The platform consists of two dies in a single package:
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Die} & \textbf{Function} & \textbf{Die Area} \\
+\midrule
+Main Processor & Scalar processor with stored-function ALU array and pipeline & 65 mm$^2$ \\
+Vector Co-Processor & 1024$\times$1024 crossbar with 0.109 GB integrated memory & 54 mm$^2$ \\
+\midrule
+\textbf{Total} & \textbf{Two-die package} & \textbf{119 mm$^2$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Main Processor}
+
+The Main Processor is a scalar processor that:
+
+\begin{itemize}
+    \item Runs general-purpose code.
+    \item Executes the operating system.
+    \item Handles branches, caches, and control flow.
+    \item Is optimized for single-thread performance.
+\end{itemize}
+
+The Main Processor uses a stored-function ALU array instead of a traditional gate-based ALU. Each ALU is a 16$\times$4 crossbar that stores a truth table implementing a specific 4-bit to 4-bit function. The truth table is programmed at fabrication.
+
+\subsection{Vector Co-Processor}
+
+The Vector Co-Processor is a dedicated accelerator that:
+
+\begin{itemize}
+    \item Accelerates vector and matrix operations.
+    \item Provides 0.109 GB of integrated non-volatile memory.
+    \item Handles DMA transfers.
+    \item Is fixed at the baseline configuration.
+\end{itemize}
+
+The Vector Co-Processor uses a 1024$\times$1024 crossbar of ferroelectric cells. The crossbar stores matrix weights and performs a matrix-vector multiplication in a single parallel operation.
+
+\section{Why Two Dies}
+
+A single die would combine the scalar and vector functionality. Two dies are used instead because:
+
+\begin{enumerate}
+    \item The Main Processor uses the ferroelectric material for the ALU array.
+    \item The Vector Co-Processor uses the ferroelectric material for the crossbar and memory.
+    \item The two dies have different array layouts and different circuit requirements.
+    \item Separate dies allow the platform to be upgraded by replacing only the Main Processor.
+    \item Yield is better with two smaller dies than one large die.
+\end{enumerate}
+
+\section{What the Platform Is Not}
+
+The platform is not:
+
+\begin{itemize}
+    \item A multi-core server processor. The platform has one Main Processor core. It does not have multiple cores for multi-threaded workloads.
+    \item A training accelerator. The Vector Co-Processor is for inference and matrix operations, not neural network training.
+    \item A complete system-on-chip. It requires external power management, clock reference, and I/O peripherals.
+    \item Field-programmable. The ALU truth tables are fixed at fabrication. The instruction set is fixed.
+\end{itemize}
+
+\section{Key Advantages}
+
+\begin{itemize}
+    \item \textbf{Single-thread performance:} 21.2 GIPS at the baseline configuration.
+    \item \textbf{Vector throughput:} $1.02 \times 10^{14}$ MAC/s (1-bit workloads).
+    \item \textbf{Low power:} 0.90 W total, which is 139$\times$ lower than a typical desktop processor.
+    \item \textbf{Low cost:} \$7.24 per chip.
+    \item \textbf{Non-volatile memory:} 0.109 GB integrated, with instant boot.
+    \item \textbf{CMOS compatible:} Standard 28 nm CMOS with HZO atomic layer deposition.
+    \item \textbf{No exotic materials.}
+\end{itemize}
+
+\section{Key Limitations}
+
+\begin{itemize}
+    \item \textbf{Baseline single-thread throughput:} 0.91$\times$ a current flagship desktop processor.
+    \item \textbf{Single-core:} No multi-core scaling.
+    \item \textbf{Integrated memory capacity:} 0.109 GB.
+    \item \textbf{Fixed function:} The ALU truth tables are programmed at fabrication.
+\end{itemize}
+
+\section{Platform Positioning}
+
+The baseline platform is positioned for:
+
+\begin{itemize}
+    \item Embedded and edge applications
+    \item Low-power desktop and mobile systems
+    \item Vector-heavy workloads
+    \item Educational and research use
+\end{itemize}
+
+An advanced optimization configuration with higher clock speed, higher throughput, and additional capability is available separately and is described at the end of this document.
+
+%=====================================================================
+\part{Device Architecture}
+%=====================================================================
+
+\section{Main Processor Architecture}
+
+\subsection{Overview}
+
+The Main Processor consists of:
+
+\begin{itemize}
+    \item A stored-function ALU array (1000 ALUs, each a 16$\times$4 crossbar).
+    \item A pipelined execution core.
+    \item A register file.
+    \item A branch predictor.
+    \item An L1 cache hierarchy (64 KB instruction, 64 KB data).
+    \item An L2 unified cache (1 MB).
+    \item Control logic.
+    \item Clock distribution network.
+\end{itemize}
+
+\subsection{ALU Array}
+
+Each ALU is a 16$\times$4 crossbar of ferroelectric cells. The crossbar stores a truth table that implements the ALU function.
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Rows per ALU & 16 \\
+Columns per ALU & 4 \\
+Cells per ALU & 64 \\
+Total ALUs & 1000 \\
+Total ALU cells & 64,000 \\
+Function selection & Instruction opcode \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The ALU operation is a single read:
+
+\begin{enumerate}
+    \item The 4-bit input selects one of 16 rows.
+    \item The selected row applies voltage to the word line.
+    \item The crossbar computes the 4 output bits in parallel.
+    \item The comparator reads each output column.
+    \item The 4-bit result is latched.
+\end{enumerate}
+
+Each ALU implements one specific 4-bit to 4-bit function. The function is selected by the instruction decoder. Since there are only 256 possible 4-bit to 4-bit functions, and 1000 ALUs available, each function is implemented approximately 4 times. This gives redundancy.
+
+\subsection{Pipeline}
+
+The pipeline has 14 stages:
+
+\begin{center}
+\begin{tabular}{p{3cm}p{6cm}p{3cm}}
+\toprule
+\textbf{Stage} & \textbf{Function} & \textbf{Sub-Stages} \\
+\midrule
+1--5 & Instruction fetch (L1I) & 5 \\
+6--7 & Decode & 2 \\
+8--10 & Operand fetch & 3 \\
+11 & Execute & 1 \\
+12 & Writeback & 1 \\
+13 & Branch resolution & 1 \\
+14 & Retire & 1 \\
+\midrule
+\textbf{Total} & & \textbf{14} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Register File}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Scalar registers & 32 \\
+Register width & 64 bits \\
+Read ports & 8 \\
+Write ports & 4 \\
+Access time & 100 ps \\
+Area & 0.001 mm$^2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Branch Predictor}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Tournament (bimodal + gshare) \\
+Bimodal entries & 1024 \\
+Gshare entries & 1024 \\
+Selector entries & 1024 \\
+Prediction accuracy & 95\% \\
+Misprediction penalty & 14 cycles \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Cache Hierarchy}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Cache} & \textbf{Size} & \textbf{Ways} & \textbf{Access} \\
+\midrule
+L1 Instruction & 64 KB & 4 & 500 ps \\
+L1 Data & 64 KB & 4 & 500 ps \\
+L2 Unified & 1 MB & 8 & 2 ns \\
+Vector Co-Processor memory & 0.109 GB & --- & 3.74 ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Vector Co-Processor Architecture}
+
+\subsection{Crossbar}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Crossbar size & 1024 $\times$ 1024 \\
+Cell material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Cell type & 200 nm cell, 100 nm disk, 20 nm pillar \\
+Cell film thickness & 14.83 nm \\
+Compute time & 10.3 ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Peripheral Circuits}
+
+The Vector Co-Processor includes:
+
+\begin{itemize}
+    \item 1024 DACs (4-bit, one per word line)
+    \item 1024 TIAs (transimpedance amplifiers)
+    \item 1024 ADCs (8-bit, one per bit line)
+    \item 1024 memory comparators
+    \item Control logic
+\end{itemize}
+
+\subsection{Integrated Memory}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Capacity & 0.109 GB \\
+Cell material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Read latency & 3.74 ns \\
+Write latency & 21.1 ns \\
+Power (read) & 0.847 mW (comparators) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Inter-Die Interface}
+
+The two dies communicate through the package substrate.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Traces & 464 (232 signal + 232 ground) \\
+Trace pitch & 10 $\mu$m \\
+Data rate & 10 Gb/s per trace \\
+Total bandwidth & 290 GB/s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Clock Domains}
+
+The platform uses two clock domains on each die.
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{5cm}}
+\toprule
+\textbf{Domain} & \textbf{Frequency} & \textbf{Used by} \\
+\midrule
+Core logic & 500 MHz & Control, cache, branch predictor, I/O \\
+Compute & 8.10 GHz (baseline) & ALU array, word line drivers, comparators \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two clock domains are synchronized through an asynchronous FIFO at the boundary between the core logic and the ALU array.
+
+%=====================================================================
+\part{Cell Geometry and Materials}
+%=====================================================================
+
+\section{Main Processor ALU Cell}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Cell size & 100 nm $\times$ 100 nm \\
+Disk diameter & 60 nm \\
+Pillar diameter & 40 nm \\
+Pillar height & 4.90 nm \\
+Film thickness & 14.83 nm \\
+Annular gap (pillar to disk edge) & 10 nm \\
+Resistance ($n=1$) & 6,202 $\Omega$ \\
+Capacitance & 61.74 aF \\
+Settling time & 0.383 ps \\
+Read voltage & 9.886 mV \\
+Read current & 1.373 $\mu$A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Vector Co-Processor Cell}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Cell size & 200 nm $\times$ 200 nm \\
+Disk diameter & 100 nm \\
+Pillar diameter & 20 nm \\
+Pillar height & 2 nm \\
+Film thickness & 14.83 nm \\
+Annular gap (pillar to disk edge) & 40 nm \\
+Annular area & 161.9 nm$^2$ \\
+Resistance ($n=1$) & 11,762 $\Omega$ \\
+Capacitance & 23.38 aF \\
+Settling time & 0.275 ps \\
+\bottomrule
+\end{tabular}
+\end{center}
+\section{Material Properties}
+
+\subsection{Hafnium Zirconium Oxide}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Film thickness (Main Processor) & 14.83 nm \\
+Film thickness (Vector Co-Processor) & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Electrode Materials}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Electrode} & \textbf{Material} & \textbf{Thickness} \\
+\midrule
+Bottom & TiN & 50 nm \\
+Top & TiN & 50 nm \\
+Pillar (Main Processor) & TiN & 4.90 nm \\
+Pillar (Vector Co-Processor) & TiN & 2 nm \\
+Etch stop & Al$_2$O$_3$ & 2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Fabrication Flow}
+%=====================================================================
+
+\section{Overview}
+
+Two separate fabrication flows are used:
+
+\begin{itemize}
+    \item \textbf{Main Processor:} 19 steps, 10 masks.
+    \item \textbf{Vector Co-Processor:} 18 steps, 10 masks.
+\end{itemize}
+
+The Main Processor and Vector Co-Processor are fabricated on separate wafers and then packaged together.
+
+\section{Main Processor Fabrication Flow}
+
+\subsection{Step 1: Substrate Preparation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer size & 300 mm \\
+Substrate & Silicon (100) \\
+Thermal SiO$_2$ & 100 nm $\pm$ 2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 2: FinFET Fabrication}
+
+Standard 28 nm CMOS front-end.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Gate length & 28 nm \\
+Fins & 3-fin \\
+Gate oxide & High-$\kappa$ (HfO$_2$, EOT 3 nm) \\
+Source/drain & CoSi$_2$ \\
+Threshold voltage & 0.3 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 3: Bottom Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm $\pm$ 1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 4: Etch Stop Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Al$_2$O$_3$ \\
+Thickness & 2 nm $\pm$ 0.2 nm \\
+Method & ALD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 5: Pillar Layer Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 4.90 nm \\
+Method & ALD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 6: Pillar Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Diameter & 40 nm \\
+Method & Immersion lithography (193 nm) \\
+Alignment tolerance & $\pm$2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 7: Pillar Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Chemistry & Cl$_2$/Ar \\
+Method & RIE \\
+Etch stop & Al$_2$O$_3$ layer \\
+Overetch & 10\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 8: Etch Stop Removal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Etchant & Dilute HF (0.1\%) \\
+Etch time & 4 s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 9: HZO Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Thickness & 14.83 nm \\
+Method & ALD \\
+Temperature & 250$^\circ$C \\
+Supercycles & 82 \\
+Deposition time & 17 min \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Process note:} The film must be annealed within 1 hour of deposition.
+
+\subsection{Step 10: RTA Annealing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 450$^\circ$C \\
+Duration & 20 s \\
+Atmosphere & N$_2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 11: Top Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm \\
+Method & ALD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 12: Top Electrode Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pattern & Circle \\
+Diameter & 60 nm \\
+Alignment & Centered on pillar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 13: Disk Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Stack & TiN (50 nm) + HZO (14.83 nm) + TiN (50 nm) \\
+Chemistry (TiN) & Cl$_2$/Ar \\
+Chemistry (HZO) & BCl$_3$/Ar \\
+Etch stop & SiO$_2$ buried oxide \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 14: Post-Etch Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & O$_2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 15: Passivation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & SiN (50 nm) + SiO$_2$ (50 nm) \\
+Method & PECVD \\
+Temperature & 350$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 16: Contact Via Formation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Via diameter & 50 nm \\
+Fill material & Tungsten (CVD) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 17: Cu Interconnect}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Thickness & 1000 nm \\
+Barrier & Ta/TaN (10 nm) \\
+Fill & Cu electroplating \\
+CMP & After fill \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 18: Thick Metal Layers}
+
+The Main Processor uses thick metal layers for power delivery to the ALU array.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Layers & 2 (M9 and M10) \\
+Thickness & 10 $\mu$m each \\
+Material & Cu \\
+Purpose & Power distribution \\
+Sheet resistance & $2.0 \times 10^{-3}$ $\Omega$/square \\
+Total power-delivery resistance & 0.1 m$\Omega$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The thick metal layers reduce the power-delivery resistance and permit the full active ALU count to be supplied without IR-drop penalty.
+
+\subsection{Step 19: Final Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & Forming gas (5\% H$_2$ in N$_2$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Main Processor Mask Set}
+
+\begin{center}
+\begin{tabular}{p{2cm}p{5cm}p{3cm}}
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} \\
+\midrule
+M1 & FinFET gate & 28 nm \\
+M2 & Bottom electrode & 100 nm \\
+M3 & Pillar pattern & 40 nm \\
+M4 & Top electrode & 60 nm \\
+M5 & Disk pattern & 60 nm \\
+M6 & Contact vias & 50 nm \\
+M7 & Cu interconnect & 1000 nm \\
+M8 & Thick metal & 10 $\mu$m \\
+M9 & Bond pad opening & 50 $\mu$m \\
+M10 & Scribe line test structures & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Vector Co-Processor Fabrication Flow}
+
+The Vector Co-Processor uses the same 18-step flow as the Memory Device. The full flow is included here for completeness.
+
+\subsection{Steps 1--18}
+
+Same as the Memory Device fabrication flow:
+
+\begin{itemize}
+    \item Step 1: Substrate preparation
+    \item Step 2: FinFET fabrication (3-fin)
+    \item Step 3: Bottom electrode deposition (TiN, 50 nm)
+    \item Step 4: Etch stop deposition (Al$_2$O$_3$, 2 nm)
+    \item Step 5: Pillar layer deposition (TiN, 2 nm)
+    \item Step 6: Pillar patterning (20 nm)
+    \item Step 7: Pillar etch
+    \item Step 8: Etch stop removal
+    \item Step 9: HZO deposition (14.83 nm, 82 supercycles)
+    \item Step 10: RTA annealing (450$^\circ$C, 20 s)
+    \item Step 11: Top electrode deposition (TiN, 50 nm)
+    \item Step 12: Top electrode patterning (100 nm)
+    \item Step 13: Disk etch
+    \item Step 14: Post-etch anneal (400$^\circ$C, 30 min)
+    \item Step 15: Passivation
+    \item Step 16: Contact via formation
+    \item Step 17: Cu interconnect
+    \item Step 18: Final anneal
+\end{itemize}
+
+\subsection{Vector Co-Processor Mask Set}
+
+\begin{center}
+\begin{tabular}{p{2cm}p{5cm}p{3cm}}
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} \\
+\midrule
+M1 & FinFET gate & 28 nm \\
+M2 & Bottom electrode & 100 nm \\
+M3 & Pillar pattern & 20 nm \\
+M4 & Top electrode & 100 nm \\
+M5 & Disk pattern & 100 nm \\
+M6 & Contact vias & 50 nm \\
+M7 & Cu interconnect & 1000 nm \\
+M8 & Bond pad opening & 50 $\mu$m \\
+M9 & Passivation via & 50 nm \\
+M10 & Scribe line test structures & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Metal Stack}
+
+The Main Processor uses a 10-layer copper metal stack.
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Layer} & \textbf{Thickness} & \textbf{Pitch} & \textbf{Function} \\
+\midrule
+M1 & 100 nm & 100 nm & Local interconnect \\
+M2--M5 & 200 nm each & 200 nm & Signal routing \\
+M6--M7 & 400 nm each & 400 nm & Signal routing, clock \\
+M8 & 1000 nm & 1 $\mu$m & Power distribution \\
+M9 & 10 $\mu$m & 10 $\mu$m & Power distribution (thick) \\
+M10 & 10 $\mu$m & 10 $\mu$m & Power distribution (thick) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Dielectric stack: standard low-$\kappa$ (SiOCH) inter-metal dielectric.
+
+The Vector Co-Processor uses a 7-layer copper metal stack.
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Layer} & \textbf{Thickness} & \textbf{Pitch} & \textbf{Function} \\
+\midrule
+M1 & 100 nm & 100 nm & Local interconnect \\
+M2--M3 & 200 nm each & 200 nm & Signal routing \\
+M4--M5 & 400 nm each & 400 nm & Signal routing, clock \\
+M6 & 1000 nm & 1 $\mu$m & Power distribution \\
+M7 & 2000 nm & 2 $\mu$m & Power distribution \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Yield Analysis}
+
+\subsection{Main Processor}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Die area & 65 mm$^2$ \\
+Defect density & 0.5 cm$^{-2}$ \\
+Yield & 72.3\% \\
+Good dies per 300 mm wafer & 754 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Vector Co-Processor}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Die area & 54 mm$^2$ \\
+Defect density & 0.5 cm$^{-2}$ \\
+Yield & 76.3\% \\
+Good dies per 300 mm wafer & 959 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cost Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Cost} & \textbf{Notes} \\
+\midrule
+Main Processor die & \$2.65 & \\
+Vector Co-Processor die & \$2.09 & \\
+Package & \$2.50 & 23 mm $\times$ 23 mm BGA \\
+\midrule
+\textbf{Total chip cost} & \textbf{\$7.24} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Circuit Design}
+%=====================================================================
+
+\section{Main Processor Circuits}
+
+\subsection{Comparator}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Current-mode comparator \\
+Topology & Double-tail latch with pre-amplification \\
+Decision time & 122.2 ps \\
+Supply voltage & 1.0 V \\
+Power per comparator & 1.373 $\mu$W \\
+Number & 4,000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Word Line Driver}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & CMOS buffer \\
+Output voltage & 0--1 V \\
+Rise time & 2.25 ps \\
+Drive capability & 299 $\mu$A \\
+Number & 16,000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Write Driver}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Topology & H-bridge \\
+Voltage range & $-3.11$ V to $+3.11$ V \\
+Transistor type & 5 V I/O \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Charge Pump}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Topology & Dickson 5-stage \\
+Input & $+1$ V \\
+Output & $-3.5$ V \\
+Efficiency & 80\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Register File, Branch Predictor, Cache}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Register file & 32 registers $\times$ 64 bits, 8 read / 4 write ports \\
+Branch predictor & Tournament, 1024 entries, 95\% accuracy \\
+L1 cache & 64 KB instruction + 64 KB data, 4-way \\
+L2 cache & 1 MB unified, 8-way \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Clock Generation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Reference & 100 MHz \\
+PLL & Charge-pump PLL \\
+Multiplier & 81$\times$ \\
+Jitter & $<$1 ps RMS \\
+Lock time & $<$10 $\mu$s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Main Processor Power Breakdown}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Power} \\
+\midrule
+ALU comparators & 22.0 $\mu$W \\
+Clock distribution & 68 mW \\
+Control & 17 mW \\
+I/O & 100 mW \\
+Cache & 17 mW \\
+ECC & 10 mW \\
+Leakage & 8.75 mW \\
+\midrule
+\textbf{Total} & \textbf{221 mW} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Vector Co-Processor Circuits}
+
+\subsection{Comparator Array}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Decision time & 199.5 ps \\
+Power per comparator & 0.840 $\mu$W \\
+Number & 1024 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{DAC Array}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resolution & 4 bits \\
+Full scale & 0--50 mV \\
+Settling time & 1 ns \\
+Power per DAC & 100 $\mu$W \\
+Number & 1024 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{TIA Array}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Transimpedance & 10 k$\Omega$ \\
+Bandwidth & 1 GHz \\
+Settling time & 0.265 ns \\
+Power per TIA & 50 $\mu$W \\
+Number & 1024 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{ADC Array}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resolution & 8 bits \\
+Sample rate & 100 MS/s \\
+Conversion time & 10 ns \\
+Power per ADC & 469 $\mu$W \\
+Number & 1024 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Vector Co-Processor Power Breakdown}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Power} \\
+\midrule
+Memory comparators & 0.847 mW \\
+DACs & 102.4 mW \\
+ADCs & 480.3 mW \\
+TIAs & 51.2 mW \\
+Control & 20 mW \\
+I/O & 50 mW \\
+Clock & 10 mW \\
+ECC & 10 mW \\
+Leakage & 6 mW \\
+\midrule
+\textbf{Total} & \textbf{680 mW} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Inter-Die Interface}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Traces & 464 (232 signal + 232 ground) \\
+Data rate & 10 Gb/s per trace \\
+Total bandwidth & 290 GB/s \\
+Driver type & LVDS \\
+Receiver type & Differential amplifier \\
+Power (TX) & 20 mW \\
+Power (RX) & 15 mW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Design for Test}
+
+\begin{itemize}
+    \item JTAG test access port.
+    \item Built-in self-test (BIST) with memory exerciser.
+    \item Redundancy: 2 spare rows and 2 spare columns per sub-array.
+    \item Laser fuse programming for repair.
+\end{itemize}
+
+%=====================================================================
+\part{Operating Principles}
+%=====================================================================
+
+\section{Instruction Execution}
+
+\subsection{Instruction Procedure}
+
+\begin{enumerate}
+    \item Instruction fetch (L1I cache access).
+    \item Instruction decode (opcode, operands).
+    \item Operand fetch (register file read).
+    \item Execute (ALU truth table read).
+    \item Memory access (L1D cache, if needed).
+    \item Writeback (register file write).
+    \item Branch resolution (if branch).
+    \item Retire.
+\end{enumerate}
+
+\subsection{Execute Timing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Time} \\
+\midrule
+Settling & 0.383 ps \\
+Comparator & 122.2 ps \\
+Overhead & 0.94 ps \\
+\midrule
+\textbf{Total} & \textbf{123.5 ps} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Clock Frequency}
+
+\begin{equation}
+f = \frac{1}{123.5\ \text{ps}} = 8.10\ \text{GHz}
+\end{equation}
+
+\section{Vector Compute Operation}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Load input vector to DACs (1 ns settling).
+    \item Apply voltages to word lines (0.034 ns).
+    \item Current summing on bit lines.
+    \item TIA converts current to voltage (0.265 ns).
+    \item ADC digitizes (10 ns).
+    \item Output vector read.
+\end{enumerate}
+
+\subsection{Compute Time}
+
+\begin{equation}
+t_{\rm compute} = 0.034 + 0.265 + 10 = 10.3\ \text{ns}
+\end{equation}
+
+\subsection{Vector Throughput}
+
+\begin{equation}
+\text{Throughput} = \frac{1{,}048{,}576}{10.3 \times 10^{-9}} = 1.02 \times 10^{14}\ \text{MAC/s}
+\end{equation}
+
+\section{Programmable Function Selection}
+
+Each ALU implements one specific 4-bit to 4-bit function. The function is selected by the instruction decoder.
+
+Since there are 256 possible 4-bit to 4-bit functions, and 1000 ALUs are available, each function is implemented approximately 4 times. The instruction decoder selects the appropriate ALU for each opcode.
+
+\section{Write Operation (Programming at Fabrication)}
+
+The ALU truth tables are programmed at fabrication during production test. The programming occurs only once. The truth tables cannot be changed in the field.
+
+\subsection{Write-Verify Voltage Levels}
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Attempt} & \textbf{Field} & \textbf{Voltage} & \textbf{Cumulative} \\
+\midrule
+1 & 1.5 MV/cm & 2.2245 V & 0.500 \\
+2 & 1.7 MV/cm & 2.5211 V & 0.875 \\
+3 & 1.9 MV/cm & 2.8177 V & 0.984 \\
+4 & 2.1 MV/cm & 3.1143 V & 0.999 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Programming Time}
+
+With 100 cells programmed in parallel:
+
+\begin{equation}
+t_{\rm program} = \frac{64{,}000 \times 22.2\ \text{ns}}{100} = 14.2\ \mu\text{s}
+\end{equation}
+
+\section{Power-On Sequence}
+
+\begin{enumerate}
+    \item Apply 1 V logic supply.
+    \item Wait for power-on reset (1 $\mu$s).
+    \item Apply write voltage supply (only during programming).
+    \item Load calibration from on-chip memory.
+    \item Begin operation.
+\end{enumerate}
+
+Total boot time: $<$10 $\mu$s.
+
+\section{Power-Down Sequence}
+
+\begin{enumerate}
+    \item Complete pending operations.
+    \item Store critical data to non-volatile memory.
+    \item Remove write supply.
+    \item Remove logic supply.
+\end{enumerate}
+
+Non-volatile memory preserves all state. Power-off is instant.
+
+\section{Error Handling}
+
+\subsection{Correctable Errors}
+
+\begin{enumerate}
+    \item Correct the error using ECC.
+    \item Log the event.
+    \item Continue operation.
+\end{enumerate}
+
+\subsection{Uncorrectable Errors}
+
+\begin{enumerate}
+    \item Retry the operation.
+    \item If retry fails, mark block as bad.
+    \item Use a spare block.
+    \item If no spares remain, report to OS.
+\end{enumerate}
+
+%=====================================================================
+\part{Performance Specifications}
+%=====================================================================
+
+\section{Summary of Baseline Performance}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Clock & 8.10 GHz \\
+Effective IPC & 2.614 \\
+Single-thread throughput & 21.2 GIPS \\
+Vector throughput (1-bit) & $1.02 \times 10^{14}$ MAC/s \\
+Vector throughput (INT8-equiv) & $1.28 \times 10^{13}$ MAC/s \\
+Main Processor power & 221 mW \\
+Vector Co-Processor power & 680 mW \\
+Total power & 0.90 W \\
+Efficiency & 23.6 GIPS/W \\
+Die area (total) & 119 mm$^2$ (two dies) \\
+Chip cost & \$7.24 \\
+Pipeline depth & 14 stages \\
+Supply voltage & 1.0 V logic \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Comparison with Intel i9-13900K}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Intel i9} & \textbf{This Platform} \\
+\midrule
+Single-thread & 23.2 GIPS & 21.2 GIPS \\
+Multi-thread & 557 GIPS & 21.2 GIPS \\
+Vector & $2.97 \times 10^{12}$ MAC/s & $1.02 \times 10^{14}$ MAC/s \\
+Power & 125 W & 0.90 W \\
+Die area & 257 mm$^2$ & 119 mm$^2$ (two dies) \\
+Chip cost & \$600 & \$7.24 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Honest Assessment}
+
+\subsection{Strengths}
+
+\begin{itemize}
+    \item Vector throughput is 34.3$\times$ faster than Intel AVX-512 for 1-bit workloads.
+    \item Power is 139$\times$ lower than a typical desktop processor.
+    \item Cost is 83$\times$ lower than a typical desktop processor.
+    \item Efficiency is 127$\times$ better than a typical desktop processor.
+    \item Non-volatile memory with instant boot.
+\end{itemize}
+
+\subsection{Weaknesses}
+
+\begin{itemize}
+    \item Single-thread throughput is 0.91$\times$ a current flagship desktop processor.
+    \item Single-core: no multi-core scaling.
+    \item Integrated memory capacity is 0.109 GB.
+    \item Fixed function: the ALU truth tables are programmed at fabrication.
+\end{itemize}
+
+%=====================================================================
+\part{Verification and Qualification}
+%=====================================================================
+
+\section{Overview}
+
+The verification plan follows the three-gate structure:
+
+\begin{enumerate}
+    \item \textbf{Gate 1:} The ferroelectric phase is confirmed immediately after annealing.
+    \item \textbf{Gate 2:} The ALU cell switches correctly at the single-cell level.
+    \item \textbf{Gate 3:} The device works at scale in an array.
+\end{enumerate}
+
+\section{Gate 1: Ferroelectric Phase Confirmation}
+
+\subsection{When to Measure}
+
+After Step 10 (RTA Annealing).
+
+\subsection{What to Measure}
+
+A P-V hysteresis loop on a TiN/HZO/TiN capacitor.
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Hysteresis loop & Open loop & Clearly visible \\
+Remanent polarization & $>$10 $\mu$C/cm$^2$ & Above threshold \\
+Coercive field & 1--2 MV/cm & Within range \\
+Film thickness & 14.83 nm $\pm$ 1\% & Ellipsometry \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 2: Single Cell Verification}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Probe the top and bottom electrodes.
+    \item Apply the write voltage (2.2245 V) for 10 ns.
+    \item Apply the read voltage (9.886 mV) and measure the current.
+    \item Apply the erase voltage for 10 ns.
+    \item Apply the read voltage and measure the current.
+    \item Repeat 10 times.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+$n=1$ read current & 1.373 $\mu$A (Main), 840.5 nA (Vector) & Within 50\% \\
+$n=0$ read current & $<$1 pA & Below threshold \\
+ON/OFF ratio & $>$10$^9$ & Above threshold \\
+Reproducibility & 10/10 cycles & All succeed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 3: Small Array Verification}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Write all 4,096 cells in a 64$\times$64 test array to $n=1$.
+    \item Read all cells and measure current.
+    \item Write all cells to $n=0$.
+    \item Read all cells and measure current.
+    \item Calculate yield and cell-to-cell variation.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Array yield & $>$80\% & Above threshold \\
+Cell variation & $<$20\% (1$\sigma$) & Below threshold \\
+Write/read success & 100\% & No systematic failures \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Reliability Testing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Test} & \textbf{Specification} \\
+\midrule
+HTOL & 1000h at 125$^\circ$C \\
+HTSL & 1000h at 150$^\circ$C \\
+Temperature cycling & 500 cycles, $-40$ to $125^\circ$C \\
+HAST & 96h at 130$^\circ$C/85\% RH \\
+ESD & HBM 2 kV, CDM 500 V \\
+Latchup & 100 mA, 85$^\circ$C \\
+Endurance & $10^9$ cycles at 85$^\circ$C \\
+Retention & 1000h at 85$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Burn-In}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 125$^\circ$C \\
+Voltage & 1.1$\times$ nominal \\
+Duration & 48 hours \\
+Pattern & Processor exerciser + memory test \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Failure Modes and Mitigations}
+%=====================================================================
+
+\section{Material Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+HZO not ferroelectric & Wrong anneal temperature & HIGH & Increase anneal to 500$^\circ$C \\
+HZO phase degradation & Grain growth & MEDIUM & Control RTA profile \\
+Pinholes in HZO & Contamination & HIGH & Cleanroom, ALD QC \\
+Film thickness error & ALD cycle count error & HIGH & Ellipsometry verification \\
+Moisture absorption & Delay before anneal & HIGH & Anneal within 1 hour \\
+Film thickness variation & ALD non-uniformity & MEDIUM & Ellipsometry at 9 sites \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Device Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Pillar over-etch & No etch stop & HIGH & Al$_2$O$_3$ etch stop layer \\
+Disk over-etch & Poor selectivity & HIGH & Endpoint detection \\
+Alignment error & Lithography drift & MEDIUM & $\pm$2 nm overlay tolerance \\
+Vortex not forming & Annular width too small & HIGH & Verify annular width is adequate for vortex formation \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Circuit Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Comparator offset & Transistor mismatch & MEDIUM & Auto-zeroing \\
+Register file corruption & Write port conflict & HIGH & Scoreboard, operand forwarding \\
+Branch predictor failure & Pattern aliasing & LOW & Increase table size \\
+Cache coherence error & Protocol bug & HIGH & Formal verification \\
+Clock jitter & PLL noise & LOW & $<$1 ps RMS specification \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{System Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Cell fatigue & Endurance exceeded & MEDIUM & Write-once for ALU cells \\
+Weight drift & Retention failure & MEDIUM & Periodic recalibration \\
+Thermal runaway & Cooling failure & HIGH & Thermal shutdown \\
+Read disturb & Read voltage too high & HIGH & Verify margin \\
+Package warpage & Stress imbalance & MEDIUM & Stress compensation \\
+Inter-die failure & Trace breakage & HIGH & Redundant traces \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Packaging}
+%=====================================================================
+
+\section{Package Specification}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Package type & BGA \\
+Ball count & 484 \\
+Ball pitch & 0.8 mm \\
+Package size & 23 mm $\times$ 23 mm \\
+Package height & 1.2 mm \\
+Thermal resistance & 15$^\circ$C/W \\
+Die attach & Epoxy, 25 $\mu$m \\
+Wire type & Gold, 25 $\mu$m \\
+Bond pad pitch & 100 $\mu$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Pad Ring Layout}
+
+The pad ring uses the foundry's standard pad ring generator.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pad ring style & Staggered \\
+Pad pitch & 100 $\mu$m \\
+Pad opening & 50 $\mu$m $\times$ 50 $\mu$m \\
+Pad type & Standard foundry I/O cells \\
+Power pads & Distributed around perimeter \\
+Signal pads & Ordered by function \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pad ring is generated from the ball assignment using the foundry's standard pad ring tool.
+
+\section{Thermal Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+Total power & 0.90 W & Main + Vector \\
+Thermal resistance & 15$^\circ$C/W & Package \\
+Temperature rise & 13.5$^\circ$C & Above ambient \\
+Junction temperature & 38.5$^\circ$C & At 25$^\circ$C ambient \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All operating temperatures remain well within the 0--85$^\circ$C range. No active cooling is required.
+
+%=====================================================================
+\part{Advanced Optimization Available}
+%=====================================================================
+
+\begin{tcolorbox}[title=\textbf{ADVANCED OPTIMIZATION AVAILABLE}, colback=green!5, colframe=green!70!70, width=\textwidth]
+
+The design specified in this document is the baseline implementation of the ferroelectric vortex CPU platform.
+
+\textbf{Further optimization is possible.}
+
+The advanced optimization provides:
+
+\begin{itemize}
+    \item \textbf{Clock:} 16 GHz (1.98$\times$ the baseline)
+    \item \textbf{Effective IPC:} 2.484
+    \item \textbf{Single-thread throughput:} 39.7 GIPS (1.87$\times$ the baseline)
+    \item \textbf{Vector throughput:} $1.02 \times 10^{14}$ MAC/s (unchanged)
+    \item \textbf{Power:} 1.10 W (Main: 419 mW, Vector Co-Processor: 680 mW)
+    \item \textbf{Efficiency:} 36.1 GIPS/W (1.53$\times$ the baseline)
+    \item \textbf{Cost:} \$7.34
+\end{itemize}
+
+The complete specifications for the advanced optimization are available from the author.
+
+\textbf{Contact:} \href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+
+The advanced optimization is not included in this document.
+\end{tcolorbox}
+
+%=====================================================================
+\appendix
+%=====================================================================
+
+\part{Appendix A: Complete Numerical Tables}
+
+\section{Main Processor Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Clock & 8.10 GHz \\
+Effective IPC & 2.614 \\
+Single-thread throughput & 21.2 GIPS \\
+Pipeline depth & 14 stages \\
+ALU count & 1000 \\
+ALU size & 16$\times$4 \\
+Cell size & 100 nm \\
+Disk diameter & 60 nm \\
+Pillar diameter & 40 nm \\
+Pillar height & 4.90 nm \\
+Film thickness & 14.83 nm \\
+Cell resistance ($n=1$) & 6,202 $\Omega$ \\
+Comparator decision time & 122.2 ps \\
+Read voltage & 9.886 mV \\
+Read current & 1.373 $\mu$A \\
+Power & 221 mW \\
+Die area & 65 mm$^2$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Vector Co-Processor Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Crossbar size & 1024 $\times$ 1024 \\
+Compute time & 10.3 ns \\
+Vector throughput (1-bit) & $1.02 \times 10^{14}$ MAC/s \\
+Vector throughput (INT8-equiv) & $1.28 \times 10^{13}$ MAC/s \\
+Cell size & 200 nm \\
+Disk diameter & 100 nm \\
+Pillar diameter & 20 nm \\
+Pillar height & 2 nm \\
+Film thickness & 14.83 nm \\
+Cell resistance ($n=1$) & 11,762 $\Omega$ \\
+Integrated memory & 0.109 GB \\
+Memory read latency & 3.74 ns \\
+Power & 680 mW \\
+Die area & 54 mm$^2$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Inter-Die Interface Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Traces & 464 (232 signal + 232 ground) \\
+Trace pitch & 10 $\mu$m \\
+Data rate & 10 Gb/s per trace \\
+Total bandwidth & 290 GB/s \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Complete Platform Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Total power & 0.90 W \\
+Total die area & 119 mm$^2$ \\
+Chip cost & \$7.24 \\
+Operating temperature & 0--85$^\circ$C \\
+Supply voltage & 1.0 V logic \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Fabrication Summary}
+
+\begin{center}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{5cm}}
+\toprule
+\textbf{Die} & \textbf{Steps} & \textbf{Masks} & \textbf{Notes} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Die} & \textbf{Steps} & \textbf{Masks} & \textbf{Notes} \\
+\midrule
+\endhead
+Main Processor & 19 & 10 & Thick metal layers included \\
+Vector Co-Processor & 18 & 10 & Standard HZO process \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix B: Glossary}
+%=====================================================================
+
+\begin{center}
+\begin{longtable}{p{4cm}p{10cm}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endhead
+Stored-function ALU & An ALU implemented as a 16$\times$4 crossbar that stores a truth table for a specific 4-bit to 4-bit function \\
+Ferroelectric cell & A memory cell that stores information in the state of a ferroelectric material \\
+HZO & Hafnium zirconium oxide, Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+ALD & Atomic layer deposition \\
+RIE & Reactive ion etching \\
+RTA & Rapid thermal annealing \\
+ECC & Error correction code \\
+BGA & Ball grid array \\
+LVDS & Low-voltage differential signaling \\
+TIA & Transimpedance amplifier \\
+DAC & Digital-to-analog converter \\
+ADC & Analog-to-digital converter \\
+GIPS & Giga instructions per second \\
+IPC & Instructions per cycle \\
+HTOL & High temperature operating life test \\
+HTSL & High temperature storage life test \\
+HAST & Highly accelerated stress test \\
+ESD & Electrostatic discharge \\
+HBM & Human body model (ESD test) \\
+CDM & Charged device model (ESD test) \\
+BIST & Built-in self-test \\
+DFT & Design for test \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix C: Licensing}
+%=====================================================================
+
+\section{Document License}
+
+This document is released under the \textbf{Creative Commons Attribution 4.0 International (CC BY 4.0)} license.
+
+\section{Technology License}
+
+The technology described in this document is released as a \textbf{public, patent-free engineering specification}.
+
+No patent is sought. No license is required to manufacture, sell, or use devices implementing the design described in this document.
+
+\section{Repository Access}
+
+Complete specifications, updates, and supporting materials are available at:
+
+\begin{itemize}
+    \item \textbf{Main Repository (Mega):} \href{https://mega.nz/folder/v35nVLAB\#NbS00c8CL8ONTEHyMPe-Fg}{Mega}
+    \item \textbf{Proton Drive:} \href{https://drive.proton.me/urls/CMHBZEQKVG\#ScNAG2APdoH2}{Proton Drive}
+    \item \textbf{Zenodo:} \href{https://zenodo.org/search?q=metadata.creators.person\_or\_org.name\%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo}
+    \item \textbf{GitHub:} \href{https://github.com/MartinVHristov}{GitHub}
+    \item \textbf{OSF:} \href{https://osf.io/user/9ps8x}{OSF}
+    \item \textbf{Academia.edu:} \href{https://independent.academia.edu/MartinHristov37}{Academia.edu}
+    \item \textbf{X (Twitter):} \href{https://x.com/MHristov37}{X}
+\end{itemize}
+
+\section{Contact}
+
+\begin{center}
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+\end{center}
+
+\end{document}

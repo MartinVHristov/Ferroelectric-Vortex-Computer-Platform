@@ -1,0 +1,2083 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{cleveref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{longtable}
+
+\sisetup{detect-all=true}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdftitle={Ferroelectric Vortex GPU Platform: Complete Engineering Specification},
+    pdfauthor={Martin Hristov},
+    pdfsubject={GPU, Neural Shader, Ferroelectric, Engineering Spec},
+    pdfkeywords={ferroelectric, GPU, neural shader, graphics processor, engineering spec}
+}
+
+\title{\textbf{Ferroelectric Vortex GPU Platform}\\
+\large Complete Engineering Specification}
+\author{Martin Hristov}
+\date{11 September 2026}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Huge \bfseries Ferroelectric Vortex GPU Platform}\\[0.3cm]
+{\Large \bfseries Complete Engineering Specification}\\[2cm]
+
+{\large Martin Hristov}\\[0.5cm]
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}\\[2cm]
+\texttt{11 September 2026}\\[2cm]
+
+\begin{center}
+\textbf{Document Type:} Engineering Design --- Core Specification\\
+\textbf{Document License:} CC BY 4.0\\
+\textbf{6DUFT Framework License:} CC BY 4.0\\
+\textbf{Technology Patent Status:} \textcolor{red}{\textbf{PUBLIC RELEASE --- NO PATENT SOUGHT}}\\
+\textbf{Advanced Optimization:} \textit{Available later in this document}\\
+\textbf{Repository:}
+\href{https://mega.nz/folder/v35nVLAB#NbS00c8CL8ONTEHyMPe-Fg}{Mega} \,|\,
+\href{https://drive.proton.me/urls/CMHBZEQKVG#ScNAG2APdoH2}{Proton Drive} \,|\,
+\href{https://zenodo.org/search?q=metadata.creators.person_or_org.name%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo} \,|\,
+\href{https://github.com/MartinVHristov}{GitHub} \,|\,
+\href{https://osf.io/user/9ps8x}{OSF} \,|\,
+\href{https://independent.academia.edu/MartinHristov37}{Academia} \,|\,
+\href{https://x.com/MHristov37}{X}
+\end{center}
+
+\vfill
+{\small This document provides the complete engineering specification for a graphics processor that uses a fixed neural network (neural shader) implemented on a crossbar array of ferroelectric cells to compute pixel colors. All cell geometries, material compositions, fabrication steps, circuit designs, operating procedures, qualification tests, and acceptance criteria are provided explicitly. Every parameter required to build, test, and operate the baseline device is included. The design is released as a public, patent-free engineering specification. An advanced optimization configuration is offered separately and is described at the end of this document.}
+
+\vspace{1cm}
+
+\begin{center}
+\textbf{This is a 6DUFT inspired technology.}
+\end{center}
+
+\end{titlepage}
+
+\newpage
+\begin{abstract}
+This document is the complete engineering specification for a graphics processor built on ferroelectric vortex memory cells, using a fixed neural network as the pixel shader.
+
+Instead of programmable shader cores that execute sequential instructions, the device computes pixel colors using a fixed neural network implemented as a series of matrix-vector multiplications on a crossbar array. The neural network has 10 layers of 1024$\times$1024 matrices. Each layer is a single parallel operation.
+
+The baseline device provides:
+
+\begin{itemize}
+    \item \textbf{Internal pixel rate:} 196 Gp/s
+    \item \textbf{External pixel rate:} 176.4 Gp/s
+    \item \textbf{MAC throughput:} $2.06 \times 10^{18}$ MAC/s
+    \item \textbf{Power:} 560 mW
+    \item \textbf{Efficiency:} 350 Gp/J
+    \item \textbf{Die area:} 71 mm$^2$
+    \item \textbf{Cost:} \$9.11
+\end{itemize}
+
+The device uses standard 28 nm CMOS with hafnium zirconium oxide (Hf$_{0.5}$Zr$_{0.5}$O$_2$, HZO) atomic layer deposition. No exotic materials are required. The complete fabrication flow has 18 steps and 10 masks.
+
+The document covers architecture, cell geometry and materials, fabrication flow, circuit design, operating principles, performance specifications, verification and qualification, failure modes and mitigations, packaging, and an advanced optimization configuration available separately.
+
+The design is released openly. No patent is sought.
+
+\textbf{This is a 6DUFT inspired technology.}
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+%=====================================================================
+\part{Introduction and Overview}
+%=====================================================================
+
+\section{Purpose and Scope}
+
+This document is the complete engineering specification for a graphics processor built on ferroelectric vortex memory cells, using a fixed neural network as the pixel shader.
+
+It provides every parameter, process step, circuit specification, and procedure required to build, test, and operate the baseline device.
+
+The document is written for:
+
+\begin{itemize}
+    \item Foundry process engineers who will fabricate the device.
+    \item Circuit designers who will integrate the device.
+    \item Test engineers who will qualify the device.
+    \item System engineers who will deploy the device.
+\end{itemize}
+
+No prior knowledge of any theoretical framework is required. All necessary engineering information is contained in this document.
+
+\section{What the Device Is}
+
+The device is a graphics processor that computes pixel colors using a neural network implemented as a series of matrix-vector multiplications.
+
+Each neural shader layer is a 1024$\times$1024 crossbar of ferroelectric cells. The crossbar stores the neural network weights. Input pixel attributes are applied as voltages on dual word lines. Output pixel values are read from the bit lines.
+
+The neural network has 10 layers. Each layer is a single parallel operation. The output of each layer passes through an on-chip analog rectifier (the activation function) before entering the next layer.
+
+The device accepts compressed scene data over a PCIe 5.0 interface and outputs compressed frames over the same interface. On-chip decompression and encoding reduce the external data bandwidth by a fixed factor.
+
+\section{Why a Neural Shader}
+
+Traditional GPUs use programmable shader cores that execute sequential instructions for each pixel. This requires instruction fetch and decode, register file access, arithmetic operations, memory access, and control flow. Each of these steps consumes power and takes time.
+
+A neural shader replaces the sequential shader program with a fixed neural network. The neural network is a series of matrix-vector multiplications. The crossbar performs each multiplication in a single parallel operation.
+
+The result is a pixel shading pipeline reduced to 10 matrix-vector multiplications, each taking picoseconds.
+
+\section{What the Device Is Not}
+
+The device is not:
+
+\begin{itemize}
+    \item A traditional GPU. It does not execute programmable shader code.
+    \item A ray tracing accelerator. It cannot perform ray tracing.
+    \item A general-purpose compute device. It is specialized for neural network-based graphics rendering.
+    \item Field-programmable. The neural network weights are fixed at fabrication.
+    \item A training device. The neural network is trained offline and the weights are programmed at fabrication.
+\end{itemize}
+
+\section{Key Advantages}
+
+\begin{itemize}
+    \item \textbf{External pixel rate:} 176.4 Gp/s, which is 70.6$\times$ a typical flagship GPU's display output.
+    \item \textbf{Very low power:} 560 mW total, which is 804$\times$ lower than a typical flagship GPU.
+    \item \textbf{High efficiency:} 350 Gp/J, which is 350$\times$ a typical flagship GPU.
+    \item \textbf{Small die area:} 71 mm$^2$, which is 8.6$\times$ smaller than a typical flagship GPU.
+    \item \textbf{Low cost:} \$9.11 per chip.
+    \item \textbf{Non-volatile weights:} No memory initialization required. Instant boot.
+    \item \textbf{CMOS compatible:} Standard 28 nm CMOS with HZO atomic layer deposition.
+    \item \textbf{No exotic materials.}
+\end{itemize}
+
+\section{Key Limitations}
+
+\begin{itemize}
+    \item \textbf{Baseline internal pixel rate:} 196 Gp/s, which is 0.44$\times$ a flagship GPU.
+    \item \textbf{No programmability:} The neural network weights are fixed at fabrication.
+    \item \textbf{No ray tracing:} The neural shader cannot perform ray tracing.
+    \item \textbf{Low weight precision:} 1-bit weights at the baseline configuration.
+\end{itemize}
+
+\section{Device Positioning}
+
+The baseline device is positioned for:
+
+\begin{itemize}
+    \item Embedded graphics
+    \item Low-power desktop and mobile systems
+    \item Applications where the neural shader has been trained for the target rendering style
+    \item Multi-display systems where the high external pixel rate is beneficial
+\end{itemize}
+
+An advanced optimization configuration with higher internal pixel rate, lower power, and higher efficiency is available separately and is described at the end of this document.
+
+%=====================================================================
+\part{Device Architecture}
+%=====================================================================
+
+\section{Neural Network Structure}
+
+The neural shader is a 10-layer fully-connected neural network with 1024 inputs and 1024 outputs per layer.
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{5cm}}
+\toprule
+\textbf{Layer} & \textbf{Size} & \textbf{Function} \\
+\midrule
+Input & 64 attributes & Pixel attributes (differential) \\
+1 & 1024 $\times$ 1024 & Feature extraction \\
+2 & 1024 $\times$ 1024 & Feature processing \\
+3 & 1024 $\times$ 1024 & Feature processing \\
+4 & 1024 $\times$ 1024 & Feature processing \\
+5 & 1024 $\times$ 1024 & Feature processing \\
+6 & 1024 $\times$ 1024 & Feature processing \\
+7 & 1024 $\times$ 1024 & Feature processing \\
+8 & 1024 $\times$ 1024 & Feature processing \\
+9 & 1024 $\times$ 1024 & Feature processing \\
+10 & 1024 $\times$ 1024 & Output \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each layer is a matrix-vector multiplication. The input to each layer is the output of the previous layer after the on-chip analog rectifier. The output layer produces 1024 values, of which 4 are used for RGBA color output.
+
+The weights are fixed at fabrication and are supplied to the foundry as a mask pattern. See Section "Weight Data Interface" for the exact data format.
+
+\section{Dual Word Line Architecture}
+
+The signed weights are represented using dual word lines:
+
+\begin{itemize}
+    \item \textbf{WL$^+$:} Carries the positive input $+x_i$.
+    \item \textbf{WL$^-$:} Carries the negative input $-x_i$.
+\end{itemize}
+
+Cells with a positive weight connect to WL$^+$. Cells with a negative weight connect to WL$^-$. The current on bit line $j$ is the sum over all inputs, giving the correct signed matrix-vector product.
+
+\section{On-Chip Analog Rectifier}
+
+The activation function is an on-chip analog rectifier (ReLU).
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Current-mirror rectifier + buffer chain \\
+Input range & 0--50 mV \\
+Output range & 0--50 mV \\
+Rectification & Blocks negative currents \\
+Supply voltage & 1.0 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The rectifier is placed between each pair of neural network layers.
+
+\section{Scene Graph Decompressor}
+
+The scene graph decompressor expands compressed scene data into pixel attributes.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Input interface & PCIe 5.0, 64 GB/s \\
+Input data width & 64 bytes per clock \\
+Input clock & 500 MHz \\
+Output data width & 256 bytes per pixel block \\
+Output rate & 11.3 TB/s peak \\
+Output clock & 500 MHz \\
+Gates & 1 million \\
+Supply voltage & 1.0 V \\
+Power & 2 mW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The compression algorithm is not part of this specification. The decompressor block is delivered as a mask-ready RTL netlist.
+
+\section{Frame Encoder}
+
+The frame encoder compresses the rendered output frames for transmission over the PCIe interface.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Input data width & 4 bytes per pixel (RGBA) \\
+Input rate & 233.9 TB/s peak \\
+Input clock & 500 MHz \\
+Output interface & PCIe 5.0, 64 GB/s \\
+Output data width & 64 bytes per clock \\
+Output clock & 500 MHz \\
+Gates & 2 million \\
+Supply voltage & 1.0 V \\
+Power & 10 mW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The compression algorithm is not part of this specification. The encoder block is delivered as a mask-ready RTL netlist.
+
+\section{Internal and External Pixel Rates}
+
+\subsection{Internal Pixel Rate}
+
+The internal pixel rate is the rate at which the device processes pixels through the neural shader.
+
+\begin{equation}
+\text{Pixel rate}_{\rm internal} = \frac{N_{\rm active}}{t_{\rm compute}}
+\end{equation}
+
+where $N_{\rm active}$ is the number of simultaneously active neural networks and $t_{\rm compute}$ is the compute time per layer.
+
+At the baseline configuration: $N_{\rm active} = 14$, $t_{\rm compute} = 71.4$ ps, giving $196$ Gp/s.
+
+\subsection{External Pixel Rate}
+
+The external pixel rate is the rate at which rendered frames are transferred to the host over the PCIe 5.0 interface.
+
+At the baseline configuration: $176.4$ Gp/s.
+
+\subsection{MAC Throughput}
+
+\begin{equation}
+\text{MAC rate} = \text{Pixel rate} \times 10 \times 1024 \times 1024
+\end{equation}
+
+At the baseline configuration:
+
+\begin{equation}
+\text{MAC rate} = 196 \times 10^9 \times 10{,}485{,}760 = 2.06 \times 10^{18}\ \text{MAC/s}
+\end{equation}
+
+\section{Pipeline Architecture}
+
+At any instant, all 10 layers are active, each processing a different pixel. A pixel exits layer 10 after 10 compute cycles.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pipeline depth & 10 layers \\
+Layer compute time & 71.4 ps (baseline) \\
+Pixel exit time & $10 \times 71.4\ \text{ps} = 714\ \text{ps}$ \\
+Active networks & 14 (baseline) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Weight Data Interface}
+
+The neural network weights are supplied to the foundry as a binary mask pattern file. The file format is as follows:
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{5cm}}
+\toprule
+\textbf{Field} & \textbf{Size} & \textbf{Description} \\
+\midrule
+Header & 64 bytes & Magic number, version, layer count \\
+Layer 1 weights & $1024 \times 1024$ bits & Row-major order, 1 bit per cell \\
+Layer 2 weights & $1024 \times 1024$ bits & Row-major order \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+Layer 10 weights & $1024 \times 1024$ bits & Row-major order \\
+Trailer & 16 bytes & Checksum \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A bit value of 1 indicates a conductive cell. A bit value of 0 indicates an insulating cell. The file is used directly to generate mask M5 (disk pattern).
+
+The total weight data size is $10 \times 1024 \times 1024$ bits = 1.31 MB.
+
+\section{Clock Domains}
+
+The device uses two clock domains:
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{5cm}}
+\toprule
+\textbf{Domain} & \textbf{Frequency} & \textbf{Used by} \\
+\midrule
+PCIe / logic & 500 MHz & Decompressor, encoder, control logic \\
+Compute & Layer compute rate (14.0 GHz baseline) & Neural shader crossbar, drivers, comparator \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two clock domains are synchronized through a standard asynchronous FIFO at the boundary between the decompressor output and the neural shader input, and at the boundary between the neural shader output and the encoder input.
+
+%=====================================================================
+\part{Cell Geometry and Materials}
+%=====================================================================
+
+\section{Cell Geometry}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Cell size & 120 nm $\times$ 120 nm \\
+Disk diameter & 80 nm \\
+Pillar diameter & 60 nm \\
+Pillar height & 1.96 nm \\
+Film thickness & 14.83 nm \\
+Annular width & 10 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Annular Area}
+
+The conductive region of the cell has an annular area of 452.1 nm$^2$ at the baseline configuration.
+
+\section{Material Properties}
+
+\subsection{Hafnium Zirconium Oxide}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Film thickness & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+Film uniformity & $\pm$1\% within wafer \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Conductive Region Properties}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Property} & \textbf{Value} \\
+\midrule
+Conductive region effective radius & 2.31 nm \\
+Conductive region conductivity & $7.79 \times 10^3$ S/m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Electrode Materials}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Electrode} & \textbf{Material} & \textbf{Thickness} \\
+\midrule
+Bottom & TiN & 50 nm \\
+Top & TiN & 50 nm \\
+Pillar & TiN & 1.96 nm \\
+Etch stop & Al$_2$O$_3$ & 2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cell Electrical Characteristics}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Resistance ($n=1$) & 4,212 $\Omega$ \\
+Resistance ($n=0$) & $>10^{12}$ $\Omega$ \\
+ON/OFF ratio & $>10^9$ \\
+Capacitance & 97.8 aF \\
+Settling time & 0.412 ps \\
+Read voltage & 9.886 mV \\
+Read current ($n=1$) & 2.347 $\mu$A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Fabrication Flow}
+%=====================================================================
+
+\section{Overview}
+
+The fabrication flow has 18 steps and uses 10 masks. The flow uses standard 28 nm CMOS front-end processing with HZO atomic layer deposition for the ferroelectric layer.
+
+\section{Step-by-Step Process Flow}
+
+\subsection{Step 1: Substrate Preparation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer size & 300 mm \\
+Substrate & Silicon (100) \\
+Thermal SiO$_2$ & 100 nm $\pm$ 2 nm \\
+Cleaning & RCA clean before oxide \\
+Surface preparation & HF dip, DI rinse, N$_2$ dry \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 2: FinFET Fabrication}
+
+Standard 28 nm CMOS front-end.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Gate length & 28 nm \\
+Fins & 1-fin \\
+Gate oxide & High-$\kappa$ (HfO$_2$, EOT 3 nm) \\
+Source/drain & CoSi$_2$ \\
+Threshold voltage & 0.3 V \\
+On-current (1-fin) & 50 $\mu$A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 3: Bottom Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm $\pm$ 1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+Precursors & TiCl$_4$ + NH$_3$ \\
+Growth rate & 0.05 nm/cycle \\
+Cycles & 1000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 4: Etch Stop Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Al$_2$O$_3$ \\
+Thickness & 2 nm $\pm$ 0.2 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+Precursors & Al(CH$_3$)$_3$ + H$_2$O \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 5: Pillar Layer Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 1.96 nm $\pm$ 0.1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 6: Pillar Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Diameter & 60 nm \\
+Method & Immersion lithography (193 nm) \\
+Alignment tolerance & $\pm$2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 7: Pillar Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Chemistry & Cl$_2$/Ar \\
+Method & RIE \\
+Etch rate & $\sim$1 nm/s \\
+Etch stop & Al$_2$O$_3$ layer \\
+Overetch & 10\% \\
+Selectivity to Al$_2$O$_3$ & $>$10:1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 8: Etch Stop Removal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Etchant & Dilute HF (0.1\%) \\
+Al$_2$O$_3$ etch rate & 0.5 nm/s \\
+TiN etch rate & $<$0.01 nm/s \\
+Etch time & 4 s (2$\times$ overetch) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+After this step, the Al$_2$O$_3$ remains only under the TiN pillar.
+
+\subsection{Step 8b: Post-Etch Cleaning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{5cm}}
+\toprule
+\textbf{Step} & \textbf{Description} \\
+\midrule
+Rinse & Deionized water, 30 s \\
+Dry & N$_2$ blow dry, 30 s \\
+Plasma clean & Ar plasma, 30 s at 50 W \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 9: HZO Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Target thickness & 14.83 nm \\
+Method & ALD \\
+Deposition temperature & 250$^\circ$C $\pm$ 2$^\circ$C \\
+Chamber pressure & 0.5--2 Torr \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{ALD Recipe:}
+
+\begin{center}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Precursor} & \textbf{Pulse time} & \textbf{Purge time} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Step} & \textbf{Precursor} & \textbf{Pulse time} & \textbf{Purge time} \\
+\midrule
+\endhead
+1 & HfCl$_4$ & 0.1 s & 3 s \\
+2 & H$_2$O & 0.1 s & 3 s \\
+3 & ZrCl$_4$ & 0.1 s & 3 s \\
+4 & H$_2$O & 0.1 s & 3 s \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Cycle ratio: 1 Hf : 1 Zr.
+
+HfO$_2$ growth rate: 0.08 nm/cycle.
+
+ZrO$_2$ growth rate: 0.10 nm/cycle.
+
+Supercycle growth: 0.18 nm.
+
+Supercycles required: $14.83 / 0.18 = 82$.
+
+Actual thickness: $82 \times 0.18 = 14.76$ nm.
+
+Deviation: $-0.47\%$ (within $\pm 1\%$ tolerance).
+
+Deposition time: $82 \times 12.4 = 17$ minutes.
+
+Precursor lines: 150--180$^\circ$C.
+
+Exhaust: corrosion-resistant (HCl byproduct).
+
+Scrubber: wet type for HCl.
+
+\textbf{Process note:} The film must be annealed within 1 hour of deposition to prevent moisture absorption.
+
+\subsection{Step 10: RTA Annealing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Method & Rapid Thermal Annealing \\
+Temperature & 450$^\circ$C \\
+Duration & 20 s \\
+Atmosphere & N$_2$ (5N purity) \\
+Ramp rate & 50$^\circ$C/s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 11: Top Electrode Deposition}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & TiN \\
+Thickness & 50 nm $\pm$ 1 nm \\
+Method & ALD \\
+Temperature & 300$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 12: Top Electrode Patterning}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pattern & Circle \\
+Diameter & 80 nm \\
+Alignment & Centered on pillar \\
+Tolerance & $\pm$2 nm \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 13: Disk Etch}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Stack & TiN (50 nm) + HZO (14.83 nm) + TiN (50 nm) \\
+Chemistry (TiN) & Cl$_2$/Ar \\
+Chemistry (HZO) & BCl$_3$/Ar \\
+Etch stop & SiO$_2$ buried oxide \\
+Selectivity to SiO$_2$ & $>$3:1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Multi-step etch:
+
+\begin{enumerate}
+    \item TiN etch (50 nm): Cl$_2$/Ar, 50 s.
+    \item HZO etch (14.83 nm): BCl$_3$/Ar, 15 s.
+    \item TiN etch (50 nm): Cl$_2$/Ar, 50 s.
+\end{enumerate}
+
+Endpoint detection: optical emission spectroscopy. Ti line at 363.5 nm, Hf line at 313.5 nm.
+
+\subsection{Step 14: Post-Etch Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & O$_2$ \\
+Purpose & Repair sidewall damage \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 15: Passivation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Material & SiN (50 nm) + SiO$_2$ (50 nm) \\
+Method & PECVD \\
+Temperature & 350$^\circ$C \\
+Stress & $<$200 MPa \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 16: Contact Via Formation}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Via diameter & 50 nm \\
+Fill material & Tungsten (CVD) \\
+Barrier & TiN (5 nm) \\
+Resistivity & $5.6 \times 10^{-8}$ $\Omega\cdot$m \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 17: Cu Interconnect}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Thickness & 1000 nm \\
+Barrier & Ta/TaN (10 nm) \\
+Seed & Cu (50 nm PVD) \\
+Fill & Cu electroplating \\
+CMP & After fill \\
+Sheet resistance & $2.0$ m$\Omega$/sq \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 18: Final Anneal}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 400$^\circ$C \\
+Duration & 30 min \\
+Atmosphere & Forming gas (5\% H$_2$ in N$_2$) \\
+Purpose & Contact sintering, interface passivation \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Mask Set}
+
+\begin{center}
+\begin{longtable}{p{2cm}p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} & \textbf{Type} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mask} & \textbf{Purpose} & \textbf{CD} & \textbf{Type} \\
+\midrule
+\endhead
+M1 & FinFET gate & 28 nm & Dark field \\
+M2 & Bottom electrode & 100 nm & Dark field \\
+M3 & Pillar pattern & 60 nm & Dark field \\
+M4 & Top electrode & 80 nm & Dark field \\
+M5 & Disk pattern (weight-encoded) & 80 nm & Clear field \\
+M6 & Contact vias & 50 nm & Dark field \\
+M7 & Cu interconnect & 1000 nm & Dark field \\
+M8 & Bond pad opening & 50 $\mu$m & Clear field \\
+M9 & Passivation via & 50 nm & Dark field \\
+M10 & Scribe line test structures & --- & --- \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Total masks: 10. Mask M5 is generated from the weight data file described in Section "Weight Data Interface."
+
+\section{Metal Stack}
+
+The device uses a 10-layer copper metal stack.
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Layer} & \textbf{Thickness} & \textbf{Pitch} & \textbf{Sheet R} & \textbf{Function} \\
+\midrule
+M1 & 100 nm & 100 nm & 0.20 $\Omega$/sq & Local interconnect \\
+M2--M5 & 200 nm each & 200 nm & 0.10 $\Omega$/sq & Signal routing \\
+M6--M7 & 400 nm each & 400 nm & 0.05 $\Omega$/sq & Signal routing, clock \\
+M8 & 1000 nm & 1 $\mu$m & 0.02 $\Omega$/sq & Power distribution \\
+M9 & 10 $\mu$m & 10 $\mu$m & 0.002 $\Omega$/sq & Power distribution (thick) \\
+M10 & 10 $\mu$m & 10 $\mu$m & 0.002 $\Omega$/sq & Power distribution (thick) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Dielectric stack: standard low-$\kappa$ (SiOCH) inter-metal dielectric.
+
+\section{Thermal Budget}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Temperature} & \textbf{Limit} \\
+\midrule
+FinFET & $\sim$1000$^\circ$C & CoSi$_2$ stable to 700$^\circ$C \\
+CoSi$_2$ formation & $\sim$450$^\circ$C & \\
+Bottom electrode & 300$^\circ$C & TiN stable to 700$^\circ$C \\
+RTA anneal & 450$^\circ$C & HZO phase 400--600$^\circ$C \\
+Post-etch anneal & 400$^\circ$C & \\
+Final anneal & 400$^\circ$C & Cu stable to 400$^\circ$C \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All temperatures are within limits.
+
+\section{Yield Analysis}
+
+\subsection{Defect Density}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Defect Type} & \textbf{Density} \\
+\midrule
+HZO pinholes & $<$0.1 cm$^{-2}$ \\
+TiN pillar defects & $<$0.01 cm$^{-2}$ \\
+Disk etch defects & $<$0.1 cm$^{-2}$ \\
+Passivation defects & $<$1 cm$^{-2}$ \\
+Particle contamination & $<$1 cm$^{-2}$ \\
+\midrule
+\textbf{Total (mature)} & \textbf{0.5 cm$^{-2}$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Yield}
+
+For a 71 mm$^2$ die:
+
+\begin{equation}
+Y = e^{-0.5 \times 0.71} = 70.1\%
+\end{equation}
+
+Good dies per 300 mm wafer: 670.
+
+\section{Cost Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Wafer cost & \$2,000 \\
+Good dies per wafer & 670 \\
+Die cost & \$2.99 \\
+Package cost & \$5.00 \\
+Test cost & \$1.12 \\
+Total chip cost & \$9.11 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Circuit Design}
+%=====================================================================
+
+\section{Supply and Reference}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Logic supply & 1.0 V \\
+Write supply (programming only) & $\pm$3.2 V \\
+Reference clock input & 100 MHz, LVCMOS \\
+Reference clock amplitude & 1.0 V \\
+Reference clock jitter tolerance & $<$10 ps RMS \\
+Bandgap reference & 1.2 V $\pm$ 1\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The write supply is only used during programming at fabrication. It is not required at runtime.
+
+\section{I/O Voltage Levels}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}p{4cm}}
+\toprule
+\textbf{Interface} & \textbf{Supply} & \textbf{Signal swing} & \textbf{Standard} \\
+\midrule
+Core logic & 1.0 V & 0--1.0 V & Core CMOS \\
+PCIe 5.0 SerDes & 0.9 V & Differential & PCIe 5.0 \\
+JTAG & 1.0 V & 0--1.0 V & LVCMOS \\
+Reference clock & 1.0 V & 0--1.0 V & LVCMOS \\
+Write/erase (test only) & $\pm$3.2 V & Analog & Custom \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{ESD Protection}
+
+Standard foundry I/O ESD protection is used on all pads.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+HBM rating & 2 kV \\
+CDM rating & 500 V \\
+Implementation & Standard foundry I/O cells \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Dual Word Line Drivers}
+
+Each input row uses two drivers: a non-inverting buffer and an inverting buffer.
+
+\subsection{Non-Inverting Buffer}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Class AB push-pull \\
+Width (NMOS) & 50 $\mu$m \\
+Width (PMOS) & 100 $\mu$m \\
+Length & 28 nm \\
+On-resistance & 1 $\Omega$ \\
+Supply voltage & 1.0 V \\
+Signal range & 0--50 mV \\
+Charging time & 2.25 ps \\
+Number & 1024 per layer per polarity \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Inverting Buffer}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Class AB push-pull with inversion \\
+Width (NMOS) & 50 $\mu$m \\
+Width (PMOS) & 100 $\mu$m \\
+Length & 28 nm \\
+On-resistance & 1 $\Omega$ \\
+Supply voltage & 1.0 V \\
+Signal range & $-50$ to 0 mV \\
+Charging time & 2.25 ps \\
+Number & 1024 per layer per polarity \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Word Line Capacitance}
+
+\begin{equation}
+C_{\rm wordline} = 1024 \times 0.1\ \text{fF} + 20\ \text{fF} = 122.4\ \text{fF}
+\end{equation}
+
+\section{Pre-Charge Circuit}
+
+Each bit line is pre-charged to 0 V before each compute operation.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Charge recycling \\
+Pre-charge transistor width & 4 $\mu$m \\
+Pre-charge transistor length & 28 nm \\
+On-resistance & 25 $\Omega$ \\
+Pre-charge time & 16.6 ps \\
+Charge recycling fraction & 50\% \\
+Storage capacitor & 5 fF (standard MOS capacitor) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Charge recycling operation:} The bit line charge is transferred to a storage capacitor instead of being dissipated to ground. The stored charge is used to pre-charge the next bit line. This reduces the pre-charge energy by 50\%.
+
+\section{Analog Rectifier and Buffer Chain}
+
+The activation function is implemented as a current-mirror rectifier followed by a buffer chain.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Rectifier type & PMOS current mirror \\
+Rectifier width & 10 $\mu$m \\
+Rectifier length & 28 nm \\
+Bias current & 0.514 $\mu$A \\
+Bias circuit & Diode-connected NMOS reference \\
+Buffer stage 1 & Drives 1 fF, width 10 $\mu$m \\
+Buffer stage 2 & Drives 10 fF, width 50 $\mu$m \\
+Buffer stage 3 & Drives word line (122.4 fF), width 100 $\mu$m \\
+Supply voltage & 1.0 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Sample-and-Hold}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Switched capacitor \\
+Sampling switch width & 10 $\mu$m \\
+Sampling switch length & 28 nm \\
+Sampling switch on-resistance & 5 $\Omega$ \\
+Hold capacitance & 10 fF \\
+Sampling time & 1 ps \\
+Droop rate & $<$1 mV/ms \\
+Number & 1024 per layer per network \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Comparator}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Current-mode comparator with auto-zeroing \\
+Topology & Double-tail latch with pre-amplification \\
+Decision time & 71.4 ps \\
+Supply voltage & 1.0 V \\
+Power per comparator & 2.347 $\mu$W \\
+Auto-zero capacitor & 100 fF \\
+Reference current & 1.0 $\mu$A \\
+Offset (after auto-zero) & $<$10 $\mu$V \\
+Number & 1024 per network \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Control Logic}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Type & Finite state machine \\
+Clock domain & Single, 500 MHz \\
+Reset & Active-low, asynchronous \\
+Register map & 32 control registers, 32 status registers \\
+Pipeline control & Layer pipelining, timing, calibration \\
+Power & 20 mW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{ECC and Bad Block Management}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Code type & SEC (Hamming) \\
+Data word & 64 bits \\
+Check bits & 7 bits \\
+Code rate & 0.90 \\
+Correctable errors & 1 per 64 bits \\
+Power & 10 mW \\
+Bad block table location & Block 0 (reserved) \\
+Bad block table size & 10\% of total block count \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Bad blocks are identified at test time and skipped during operation. The bad block table is stored in block 0 of the integrated memory.
+
+\section{Complete Power Summary}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Component} & \textbf{Power} \\
+\midrule
+Comparators & 336 mW \\
+Analog rectifier + buffers & 111 mW \\
+Control & 20 mW \\
+I/O & 50 mW \\
+Clock & 10 mW \\
+ECC & 10 mW \\
+Pre-charge & 1.81 mW \\
+Word line drivers & 2.04 mW \\
+Scene decompressor & 2 mW \\
+Frame encoder & 10 mW \\
+Leakage & 6 mW \\
+\midrule
+\textbf{Total} & \textbf{560 mW} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Design for Test}
+
+\begin{itemize}
+    \item JTAG test access port.
+    \item Built-in self-test (BIST) with neural network test vectors.
+    \item Redundancy: 2 spare rows and 2 spare columns per sub-array.
+    \item Laser fuse programming for repair.
+\end{itemize}
+
+%=====================================================================
+\part{Operating Principles}
+%=====================================================================
+
+\section{Neural Network Weights}
+
+The neural shader weights are fixed at fabrication. They are determined offline and supplied to the foundry as a mask pattern file. The file format is given in Section "Weight Data Interface."
+
+The weights are 1-bit at the baseline configuration. They are encoded as the presence or absence of a conductive region in each ferroelectric cell.
+
+\section{Programming at Fabrication}
+
+The neural network weights are programmed at fabrication during production test. The programming occurs only once. The weights cannot be changed in the field.
+
+\subsection{Write-Verify Voltage Levels}
+
+\begin{center}
+\begin{tabular}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Attempt} & \textbf{Field} & \textbf{Voltage} & \textbf{Cumulative} \\
+\midrule
+1 & 1.5 MV/cm & 2.2245 V & 0.500 \\
+2 & 1.7 MV/cm & 2.5211 V & 0.875 \\
+3 & 1.9 MV/cm & 2.8177 V & 0.984 \\
+4 & 2.1 MV/cm & 3.1143 V & 0.999 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Write Pulse Shape}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Rise time & 300 ps \\
+Hold time & 10 ns \\
+Fall time & 300 ps \\
+Verify time & 2 ns \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Programming Time}
+
+With 100 cells programmed in parallel:
+
+\begin{equation}
+t_{\rm program} = \frac{10{,}485{,}760 \times 22.2\ \text{ns}}{100} = 2.33\ \text{ms}
+\end{equation}
+
+\section{Compute Operation}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Pre-charge bit lines to 0 V (16.6 ps).
+    \item Apply differential input voltages to dual word lines.
+    \item Bit lines charge through cell conductances.
+    \item Sample-and-hold captures bit line voltage (1 ps).
+    \item Analog rectifier converts the output.
+    \item Buffer chain drives the next layer's word lines.
+\end{enumerate}
+
+\subsection{Compute Time}
+
+\begin{equation}
+t_{\rm compute} = \max(t_{\rm pre}, t_{\rm WL} + t_{\rm settle} + t_{\rm charge}, t_{\rm comp})
+\end{equation}
+
+At the baseline configuration:
+
+\begin{equation}
+t_{\rm compute} = \max(16.6, 3.45, 71.4) = 71.4\ \text{ps}
+\end{equation}
+
+The comparator time dominates.
+
+\subsection{Pixel Rate}
+
+\begin{equation}
+\text{Pixel rate} = \frac{N_{\rm active}}{t_{\rm compute}} = \frac{14}{71.4 \times 10^{-12}} = 196\ \text{Gp/s}
+\end{equation}
+
+\section{External Interface}
+
+\subsection{Input}
+
+Compressed scene data is received over PCIe 5.0 at 64 GB/s. The scene graph decompressor expands the data into pixel attributes.
+
+\subsection{Output}
+
+Rendered frames are compressed by the frame encoder and transmitted over PCIe 5.0 at 64 GB/s.
+
+\subsection{External Pixel Rate}
+
+\begin{equation}
+\text{Pixel rate}_{\rm external} = 176.4\ \text{Gp/s}
+\end{equation}
+
+\section{Power Sequencing}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Timing} \\
+\midrule
+Apply 0.9 V PCIe SerDes supply & $t=0$ \\
+Apply 1.0 V core supply & $t+1$ ms \\
+Apply 1.0 V I/O supply & $t+2$ ms \\
+Release reset & $t+10$ ms \\
+Load calibration & $t+10$ ms to $t+10.1$ ms \\
+Begin operation & $t+10.1$ ms \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Reverse order for power-down.
+
+\section{Power-On Sequence}
+
+\begin{enumerate}
+    \item Apply 1.0 V logic supply.
+    \item Wait for power-on reset (1 $\mu$s).
+    \item Load calibration from on-chip memory.
+    \item Begin operation.
+\end{enumerate}
+
+Total boot time: $<$10 $\mu$s.
+
+\section{Power-Down Sequence}
+
+\begin{enumerate}
+    \item Complete pending operations.
+    \item Remove logic supply.
+\end{enumerate}
+
+The neural network weights are non-volatile. Power-off is instant. No state loss.
+
+\section{Error Handling}
+
+\subsection{Correctable Errors}
+
+Correct the error using ECC, log the event, and continue operation.
+
+\subsection{Uncorrectable Errors}
+
+Retry the operation. If retry fails, mark the affected region as degraded.
+
+%=====================================================================
+\part{Performance Specifications}
+%=====================================================================
+
+\section{Summary of Baseline Performance}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Internal pixel rate & 196 Gp/s \\
+External pixel rate & 176.4 Gp/s \\
+MAC throughput (1-bit) & $2.06 \times 10^{18}$ MAC/s \\
+Compute time per layer & 71.4 ps \\
+Active networks & 14 \\
+Power & 560 mW \\
+Efficiency & 350 Gp/J \\
+Die area & 71 mm$^2$ \\
+Chip cost & \$9.11 \\
+Pipeline depth & 10 layers \\
+Logic supply & 1.0 V \\
+Operating temperature & 0--85$^\circ$C \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Comparison with NVIDIA RTX 4090}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{RTX 4090} & \textbf{This Device} \\
+\midrule
+Internal pixel rate & 450 Gp/s & 196 Gp/s \\
+External pixel rate (PCIe 5.0) & --- & 176.4 Gp/s \\
+External display output & 2.5 Gp/s & 176.4 Gp/s \\
+Power & 450 W & 560 mW \\
+Efficiency & 1.0 Gp/J & 350 Gp/J \\
+Die area & 608 mm$^2$ & 71 mm$^2$ \\
+Chip cost & \$30,000 & \$9.11 \\
+Programmability & Full & None \\
+Ray tracing & Yes & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Comparison with AMD Radeon RX 7900 XTX}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{RX 7900} & \textbf{This Device} \\
+\midrule
+Internal pixel rate & 330 Gp/s & 196 Gp/s \\
+Power & 355 W & 560 mW \\
+Efficiency & 0.93 Gp/J & 350 Gp/J \\
+Die area & 529 mm$^2$ & 71 mm$^2$ \\
+Chip cost & \$999 & \$9.11 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Honest Assessment}
+
+\subsection{Strengths}
+
+\begin{itemize}
+    \item External pixel rate is 70.6$\times$ a flagship GPU's display output.
+    \item Power is 804$\times$ lower than a flagship GPU.
+    \item Efficiency is 350$\times$ better than a flagship GPU.
+    \item Die area is 8.6$\times$ smaller than a flagship GPU.
+    \item Cost is orders of magnitude lower.
+    \item Non-volatile weights with instant boot.
+    \item Multi-display capability: up to 353 4K displays at 60 Hz.
+\end{itemize}
+
+\subsection{Weaknesses}
+
+\begin{itemize}
+    \item Internal pixel rate is 0.44$\times$ a flagship GPU.
+    \item No programmability: the neural network weights are fixed at fabrication.
+    \item No ray tracing.
+    \item 1-bit weight precision.
+\end{itemize}
+
+%=====================================================================
+\part{Verification and Qualification}
+%=====================================================================
+
+\section{Overview}
+
+The verification plan follows the three-gate structure:
+
+\begin{enumerate}
+    \item \textbf{Gate 1:} The ferroelectric phase is confirmed immediately after annealing.
+    \item \textbf{Gate 2:} The cell switches correctly at the single-cell level.
+    \item \textbf{Gate 3:} The device works at scale in an array.
+\end{enumerate}
+
+\section{Gate 1: Ferroelectric Phase Confirmation}
+
+\subsection{When to Measure}
+
+After Step 10 (RTA Annealing).
+
+\subsection{What to Measure}
+
+A P-V hysteresis loop on a TiN/HZO/TiN capacitor.
+
+\subsection{Test Structure}
+
+A 50 $\mu$m $\times$ 50 $\mu$m capacitor fabricated on the same wafer, in the scribe line or a dedicated test area.
+
+\subsection{Equipment}
+
+Radiant Precision LC ferroelectric tester, or equivalent.
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Contact the top and bottom electrodes with probe tips.
+    \item Apply a voltage sweep from $-5$ V to $+5$ V and back.
+    \item Measure the polarization as a function of voltage.
+    \item Plot the P-V loop.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Hysteresis loop & Open loop & Clearly visible \\
+Remanent polarization & $>$10 $\mu$C/cm$^2$ & Above threshold \\
+Coercive field & 1--2 MV/cm & Within range \\
+Film thickness & 14.83 nm $\pm$ 1\% & Ellipsometry \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 2: Single Cell Verification}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Probe the top and bottom electrodes.
+    \item Apply the write voltage (2.2245 V) for 10 ns.
+    \item Apply the read voltage (9.886 mV) and measure the current.
+    \item Apply the erase voltage for 10 ns.
+    \item Apply the read voltage and measure the current.
+    \item Repeat 10 times.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+$n=1$ read current & 2.347 $\mu$A & Within 50\% \\
+$n=0$ read current & $<$1 pA & Below threshold \\
+ON/OFF ratio & $>$10$^9$ & Above threshold \\
+Reproducibility & 10/10 cycles & All succeed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Gate 3: Small Array Verification}
+
+\subsection{Procedure}
+
+\begin{enumerate}
+    \item Write all 4,096 cells in a 64$\times$64 test array to $n=1$.
+    \item Read all cells and measure current.
+    \item Write all cells to $n=0$.
+    \item Read all cells and measure current.
+    \item Calculate yield and cell-to-cell variation.
+\end{enumerate}
+
+\subsection{Pass Criteria}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Measurement} & \textbf{Target} & \textbf{Pass} \\
+\midrule
+Array yield & $>$80\% & Above threshold \\
+Cell variation & $<$20\% (1$\sigma$) & Below threshold \\
+Write/read success & 100\% & No systematic failures \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Reliability Testing}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Test} & \textbf{Specification} & \textbf{Sample size} & \textbf{Acceptance} \\
+\midrule
+HTOL & 1000h at 125$^\circ$C & 77 units & 0 failures \\
+HTSL & 1000h at 150$^\circ$C & 45 units & 0 failures \\
+Temperature cycling & 500 cycles, $-40$ to $125^\circ$C & 77 units & 0 failures \\
+HAST & 96h at 130$^\circ$C/85\% RH & 77 units & 0 failures \\
+ESD (HBM) & 2 kV & 3 units & 0 failures \\
+ESD (CDM) & 500 V & 3 units & 0 failures \\
+Latchup & 100 mA, 85$^\circ$C & 6 units & 0 failures \\
+Endurance & $10^9$ cycles at 85$^\circ$C & 30 units & 0 failures \\
+Retention & 1000h at 85$^\circ$C & 30 units & 0 failures \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Burn-In}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Temperature & 125$^\circ$C \\
+Voltage & 1.1$\times$ nominal \\
+Duration & 48 hours \\
+Pattern & Neural network test vector + weight verification \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\part{Failure Modes and Mitigations}
+%=====================================================================
+
+\section{Material Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+HZO not ferroelectric & Wrong anneal temperature & HIGH & Increase anneal to 500$^\circ$C \\
+HZO phase degradation & Grain growth & MEDIUM & Control RTA profile \\
+Pinholes in HZO & Contamination & HIGH & Cleanroom, ALD QC \\
+Film thickness error & ALD cycle count error & HIGH & Ellipsometry verification \\
+Moisture absorption & Delay before anneal & HIGH & Anneal within 1 hour \\
+Film thickness variation & ALD non-uniformity & MEDIUM & Ellipsometry at 9 sites \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Device Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Pillar over-etch & No etch stop & HIGH & Al$_2$O$_3$ etch stop layer \\
+Disk over-etch & Poor selectivity & HIGH & Endpoint detection \\
+Alignment error & Lithography drift & MEDIUM & $\pm$2 nm overlay tolerance \\
+Vortex not forming & Annular width insufficient & HIGH & Verify annular width $\geq$ 1.5$\times$ core diameter \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Circuit Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Comparator offset & Transistor mismatch & MEDIUM & Auto-zeroing \\
+Rectifier failure & Bias wrong & HIGH & Verify 0.514 $\mu$A bias \\
+Pre-charge incomplete & Transistor too narrow & MEDIUM & 4 $\mu$m width \\
+Charge recycling failure & Storage capacitor leak & LOW & Accept reduced efficiency \\
+Clock jitter & PLL noise & LOW & $<$1 ps RMS \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{System Failure Modes}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2cm}p{3cm}}
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mode} & \textbf{Cause} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Cell fatigue & Endurance exceeded & MEDIUM & Write-once (no wear) \\
+Weight drift & Retention failure & MEDIUM & Periodic recalibration \\
+Thermal runaway & Cooling failure & HIGH & Thermal shutdown \\
+Read disturb & Read voltage too high & HIGH & Verify margin \\
+Package warpage & Stress imbalance & MEDIUM & Stress compensation \\
+PCIe transfer failure & Link error & MEDIUM & Retry protocol \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Packaging}
+%=====================================================================
+
+\section{Package Specification}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Package type & BGA \\
+Ball count & 1024 \\
+Ball pitch & 1.0 mm \\
+Package size & 40 mm $\times$ 40 mm \\
+Package height & 1.5 mm \\
+Thermal resistance & 15$^\circ$C/W \\
+Die attach & Epoxy, 25 $\mu$m \\
+Die bumps & Copper pillar, 50 $\mu$m pitch \\
+Substrate layers & 8 (4 thick copper for power) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Ball Assignment}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}}
+\toprule
+\textbf{Function} & \textbf{Ball count} \\
+\midrule
+Power (1.0 V logic) & 256 \\
+Ground & 256 \\
+PCIe 5.0 lane pairs & 64 (32 TX + 32 RX) \\
+JTAG & 5 \\
+Reference clock & 2 \\
+Reset & 1 \\
+Test mode & 4 \\
+Spare & 436 \\
+\midrule
+\textbf{Total} & \textbf{1024} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Pad Ring Layout}
+
+The pad ring uses the foundry's standard pad ring generator.
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Pad ring style & Staggered \\
+Pad pitch & 100 $\mu$m \\
+Pad opening & 50 $\mu$m $\times$ 50 $\mu$m \\
+Pad type & Standard foundry I/O cells \\
+Power pads & Distributed around perimeter \\
+Signal pads & Ordered by function \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pad ring is generated from the ball assignment table using the foundry's standard pad ring tool. A reference pad ring script is available in the repository.
+
+\section{Floorplan Guidance}
+
+The device floorplan is organized into functional blocks.
+
+\begin{center}
+\begin{tabular}{p{4cm}p{3cm}p{4cm}}
+\toprule
+\textbf{Block} & \textbf{Area} & \textbf{Location} \\
+\midrule
+Neural shader crossbar (10 layers) & 40 mm$^2$ & Center \\
+Comparators & 8 mm$^2$ & Adjacent to crossbar \\
+Drivers (word lines) & 4 mm$^2$ & Adjacent to crossbar \\
+Analog rectifier + buffers & 5 mm$^2$ & Between layers \\
+Control logic & 2 mm$^2$ & Corner \\
+ECC + bad block & 1 mm$^2$ & Corner \\
+Scene decompressor & 2 mm$^2$ & Edge (PCIe side) \\
+Frame encoder & 4 mm$^2$ & Edge (PCIe side) \\
+PCIe SerDes & 2 mm$^2$ & Edge (PCIe side) \\
+PLL + clock distribution & 1 mm$^2$ & Center \\
+Pad ring & 2 mm$^2$ & Perimeter \\
+\midrule
+\textbf{Total} & \textbf{71 mm$^2$} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The floorplan places the neural shader crossbar in the center, the comparators and drivers immediately adjacent, and the PCIe interface at one edge.
+
+\section{Power Delivery Network}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+On-die decoupling & 100 nF (distributed) \\
+Package decoupling & 10 $\mu$F (4 $\times$ 2.5 $\mu$F) \\
+Board decoupling & 100 $\mu$F \\
+Target impedance & $<$10 m$\Omega$ from DC to 100 MHz \\
+IR drop target & $<$5\% of 1.0 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Thermal Analysis}
+
+\begin{center}
+\begin{tabular}{p{5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Notes} \\
+\midrule
+Power (typical) & 560 mW & 71 mm$^2$ die \\
+Power (maximum) & 700 mW & Worst-case workload \\
+Thermal resistance & 15$^\circ$C/W & Package \\
+Temperature rise & 8.4$^\circ$C & At typical power \\
+Temperature rise & 10.5$^\circ$C & At maximum power \\
+Junction temperature & 33.4$^\circ$C & At 25$^\circ$C ambient, typical \\
+Junction temperature & 35.5$^\circ$C & At 25$^\circ$C ambient, maximum \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All operating temperatures remain well within the 0--85$^\circ$C range. No active cooling is required.
+
+%=====================================================================
+\part{Advanced Optimization Available}
+%=====================================================================
+
+\begin{tcolorbox}[title=\textbf{ADVANCED OPTIMIZATION AVAILABLE}, colback=green!5, colframe=green!70!70, width=\textwidth]
+
+The design specified in this document is the baseline implementation of the ferroelectric vortex GPU platform.
+
+\textbf{Further optimization is possible.}
+
+The advanced optimization provides:
+
+\begin{itemize}
+    \item \textbf{Internal pixel rate:} 1,090 Gp/s (5.56$\times$ the baseline)
+    \item \textbf{External pixel rate:} 176.4 Gp/s (unchanged)
+    \item \textbf{MAC throughput:} $1.14 \times 10^{19}$ MAC/s (5.56$\times$ the baseline)
+    \item \textbf{Power:} 726 mW
+    \item \textbf{Efficiency:} 1,502 Gp/J (4.29$\times$ the baseline)
+    \item \textbf{Die area:} 71 mm$^2$ (unchanged)
+    \item \textbf{Cost:} \$9.12
+\end{itemize}
+
+The complete specifications for the advanced optimization are available from the author.
+
+\textbf{Contact:} \href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+
+The advanced optimization is not included in this document.
+\end{tcolorbox}
+
+%=====================================================================
+\appendix
+%=====================================================================
+
+\part{Appendix A: Complete Numerical Tables}
+
+\section{Fundamental Engineering Parameters}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Cell size & 120 nm $\times$ 120 nm \\
+Disk diameter & 80 nm \\
+Pillar diameter & 60 nm \\
+Pillar height & 1.96 nm \\
+Film thickness & 14.83 nm \\
+Annular width & 10 nm \\
+Conductive region effective radius & 2.31 nm \\
+Resistance ($n=1$) & 4,212 $\Omega$ \\
+Capacitance & 97.8 aF \\
+Settling time & 0.412 ps \\
+Read voltage & 9.886 mV \\
+Read current & 2.347 $\mu$A \\
+Write voltage (attempt 1) & 2.2245 V \\
+Write voltage (attempt 4) & 3.1143 V \\
+Internal pixel rate & 196 Gp/s \\
+External pixel rate & 176.4 Gp/s \\
+MAC throughput & $2.06 \times 10^{18}$ MAC/s \\
+Compute time per layer & 71.4 ps \\
+Power (typical) & 560 mW \\
+Power (maximum) & 700 mW \\
+Efficiency & 350 Gp/J \\
+Die area & 71 mm$^2$ \\
+Chip cost & \$9.11 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Material Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Ferroelectric composition & Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+Ferroelectric thickness & 14.83 nm \\
+Coercive field (25$^\circ$C) & 1.49 MV/cm \\
+Coercive field (85$^\circ$C) & 1.18 MV/cm \\
+Curie temperature & 579 K \\
+Remanent polarization & 13.07 $\mu$C/cm$^2$ \\
+Dielectric constant & 30 \\
+Resistivity & $1.284 \times 10^{-4}$ $\Omega\cdot$m \\
+Bottom electrode & TiN, 50 nm \\
+Top electrode & TiN, 50 nm \\
+Pillar & TiN, 1.96 nm \\
+Etch stop & Al$_2$O$_3$, 2 nm \\
+\bottomrule\end{longtable}
+\end{center}
+
+\section{ALD Recipe Summary}
+
+\begin{center}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Step} & \textbf{Precursor} & \textbf{Pulse time} & \textbf{Purge time} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Step} & \textbf{Precursor} & \textbf{Pulse time} & \textbf{Purge time} \\
+\midrule
+\endhead
+1 & HfCl$_4$ & 0.1 s & 3 s \\
+2 & H$_2$O & 0.1 s & 3 s \\
+3 & ZrCl$_4$ & 0.1 s & 3 s \\
+4 & H$_2$O & 0.1 s & 3 s \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Cycle ratio: 1 Hf : 1 Zr.
+
+Supercycle growth: 0.18 nm.
+
+Supercycles: 82.
+
+Deposition time: 17 min.
+
+Deposition temperature: 250$^\circ$C.
+
+Chamber pressure: 0.5--2 Torr.
+
+\section{Circuit Specifications}
+
+\begin{center}
+\begin{longtable}{p{6cm}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\endhead
+Comparator decision time & 71.4 ps \\
+Comparator power & 2.347 $\mu$W \\
+Word line driver power & 50 $\mu$W \\
+Write driver voltage range & $\pm$3.2 V \\
+Write driver transistor type & 5 V I/O \\
+Pre-charge time & 16.6 ps \\
+Pre-charge recycling fraction & 50\% \\
+ECC code type & Hamming SEC \\
+ECC data word & 64 bits \\
+ECC code rate & 0.90 \\
+Scene decompressor power & 2 mW \\
+Frame encoder power & 10 mW \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Fabrication Summary}
+
+\begin{center}
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{5cm}}
+\toprule
+\textbf{Component} & \textbf{Steps} & \textbf{Masks} & \textbf{Notes} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Component} & \textbf{Steps} & \textbf{Masks} & \textbf{Notes} \\
+\midrule
+\endhead
+GPU die & 18 & 10 & Standard HZO process \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix B: Glossary}
+%=====================================================================
+
+\begin{center}
+\begin{longtable}{p{4cm}p{10cm}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endhead
+Neural shader & A fixed neural network used to compute pixel colors instead of programmable shader code \\
+Dual word line & Architecture for signed weights using two word lines per input \\
+Ferroelectric cell & A memory cell that stores information in the state of a ferroelectric material \\
+HZO & Hafnium zirconium oxide, Hf$_{0.5}$Zr$_{0.5}$O$_2$ \\
+ALD & Atomic layer deposition \\
+RIE & Reactive ion etching \\
+RTA & Rapid thermal annealing \\
+ECC & Error correction code \\
+BGA & Ball grid array \\
+TIA & Transimpedance amplifier \\
+DAC & Digital-to-analog converter \\
+ADC & Analog-to-digital converter \\
+MAC & Multiply-accumulate \\
+Internal pixel rate & Rate at which the device processes pixels internally \\
+External pixel rate & Rate at which rendered frames are transferred to the host \\
+ReLU & Rectified linear unit, the activation function \\
+HTOL & High temperature operating life test \\
+HTSL & High temperature storage life test \\
+HAST & Highly accelerated stress test \\
+ESD & Electrostatic discharge \\
+HBM & Human body model (ESD test) \\
+CDM & Charged device model (ESD test) \\
+BIST & Built-in self-test \\
+DFT & Design for test \\
+PCIe & Peripheral Component Interconnect Express \\
+PDN & Power delivery network \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+%=====================================================================
+\part{Appendix C: Licensing}
+%=====================================================================
+
+\section{Document License}
+
+This document is released under the \textbf{Creative Commons Attribution 4.0 International (CC BY 4.0)} license.
+
+\section{Technology License}
+
+The technology described in this document is released as a \textbf{public, patent-free engineering specification}.
+
+No patent is sought. No license is required to manufacture, sell, or use devices implementing the design described in this document.
+
+\section{Repository Access}
+
+Complete specifications, updates, and supporting materials are available at:
+
+\begin{itemize}
+    \item \textbf{Main Repository (Mega):} \href{https://mega.nz/folder/v35nVLAB\#NbS00c8CL8ONTEHyMPe-Fg}{Mega}
+    \item \textbf{Proton Drive:} \href{https://drive.proton.me/urls/CMHBZEQKVG\#ScNAG2APdoH2}{Proton Drive}
+    \item \textbf{Zenodo:} \href{https://zenodo.org/search?q=metadata.creators.person\_or\_org.name\%3A\%22Hristov\%2C+Martin+V.\%22}{Zenodo}
+    \item \textbf{GitHub:} \href{https://github.com/MartinVHristov}{GitHub}
+    \item \textbf{OSF:} \href{https://osf.io/user/9ps8x}{OSF}
+    \item \textbf{Academia.edu:} \href{https://independent.academia.edu/MartinHristov37}{Academia.edu}
+    \item \textbf{X (Twitter):} \href{https://x.com/MHristov37}{X}
+\end{itemize}
+
+\section{Contact}
+
+\begin{center}
+\href{mailto:M.V.Hristov@proton.me}{\texttt{M.V.Hristov@proton.me}}
+\end{center}
+
+\end{document}
